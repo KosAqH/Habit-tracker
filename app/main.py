@@ -12,6 +12,12 @@ main = Blueprint('main', __name__)
 @login_required
 def index():
     uid = current_user.id
+    today = datetime.date.today()
+
+    cnt = JournalEntry.query.filter_by(user_id=uid).filter_by(date=today).count()
+    cnt += HabitEntry.query.filter_by(date=today).join(Habit).filter(Habit.user_id=="uid").count()
+    is_entry_empty = not cnt
+
     habits = User.query.filter_by(id=uid).first().habits
 
     states = ["Mood"]
@@ -20,7 +26,7 @@ def index():
         'index.html',
         habits = habits,
         states = states,
-        is_entry_empty = True
+        is_entry_empty = is_entry_empty
     )
 
 @main.route('/send_form', methods = ['POST'])
@@ -44,12 +50,17 @@ def index_post():
         user_habits = Habit.query.filter_by(user_id=uid).all()
         for habit in user_habits:
             if habit.name in request.form.keys():
-                habit_entry = HabitEntry(
-                    habit_id = habit.id,
-                    date = today,
-                    value = True
-                )
-                db.session.add(habit_entry)
+                habit_value = True
+            else:
+                habit_value = False
+
+            habit_entry = HabitEntry(
+                habit_id = habit.id,
+                date = today,
+                value = habit_value
+            )
+            
+            db.session.add(habit_entry)
         
         db.session.commit()
 
