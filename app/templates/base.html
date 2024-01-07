@@ -18,10 +18,10 @@
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-end">
                             {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('main.calendar') }}" class="navbar-item">
+                            <a href="{{ url_for('main.index') }}" class="navbar-item">
                                 Calendar
                             </a>
-                            <a href="{{ url_for('main.settings') }}" class="navbar-item">
+                            <a href="{{ url_for('main.index') }}" class="navbar-item">
                                 Settings
                             </a>
                             <a href="{{ url_for('auth.logout') }}" class="navbar-item">
