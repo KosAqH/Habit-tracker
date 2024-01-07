@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import render_template, redirect
+from flask import render_template, redirect, abort
 from flask import request
 
 from flask_login import login_required
@@ -90,3 +90,30 @@ def index_post():
 
 
     return redirect("index")
+
+@main.route('/day/<date>', methods = ['GET'])
+@login_required
+def day_data(date):
+    uid = current_user.id
+
+    try:
+        parsed_date = datetime.datetime.strptime(date, r"%Y%m%d")
+    except ValueError:
+        abort(404)
+
+    habits_entries = db.session.scalars(
+        db.select(HabitEntry).filter_by(date=parsed_date.strftime(r'%Y-%m-%d'))
+        .join(Habit).filter_by(user_id=uid)
+    ).all()
+
+    journal_entry = db.session.scalar(
+        db.select(JournalEntry)
+        .filter_by(user_id=uid, date=parsed_date.strftime(r'%Y-%m-%d'))
+    )
+
+    return render_template(
+        "day.html",
+        note = journal_entry.note,
+        habits = habits_entries,
+        #states = state_entry
+    )

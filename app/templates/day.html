@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-8 is-offset-2">
+  <h1>
+    {{date}}
+  </h1>
+
+  <h3>Habits</h3>
+  {% for entry in habits %}
+    {{entry.habit.name}} - {{entry.value}}
+  {% endfor %}
+
+  <h3>States</h3>
+
+  <h3>Note</h3>
+  <p>
+    {{note}}
+  </p>
+</div>
+
+{% endblock %}
