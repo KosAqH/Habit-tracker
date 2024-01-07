@@ -19,14 +19,14 @@ class Habit(db.Model):
     user_id = db.Column(db.ForeignKey("User.id"))
     name = db.Column(db.Text)
     start_date = db.Column(db.Date)
-    is_active = db.Column(db.Bool)
+    is_active = db.Column(db.Boolean)
 
     habit_entries = db.relationship('Habit', backref='user', cascade='all, delete, delete-orphan')
 
 class HabitEntry(db.Model):
     habit_id = db.Column(db.ForeignKey("Habit.id"))
     date = db.Column(db.Date)
-    value = db.Column(db.Bool)
+    value = db.Column(db.Boolean)
 
 class JournalEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
