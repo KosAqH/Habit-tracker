@@ -7,4 +7,11 @@ main = Blueprint('main', __name__)
 @main.route('/index')
 @login_required
 def index():
-    return render_template('index.html')
+    habits = ["Wake up", "Eat breakfest"]
+    states = ["Mood"]
+
+    return render_template(
+        'index.html',
+        habits = habits,
+        states = states,
+        is_entry_empty = True)
