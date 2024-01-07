@@ -12,7 +12,7 @@
           {% for habit in habits %}
             <label class="checkbox">
               {{habit.name}}
-              <input type="checkbox" name="habit_{{habit.name}}">
+              <input type="checkbox" name="{{habit.name}}">
             </label>
           {% endfor %}
         </div>

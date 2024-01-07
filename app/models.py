@@ -25,13 +25,11 @@ class Habit(db.Model):
     habit_entries = db.relationship('HabitEntry', backref='habit', cascade='all, delete, delete-orphan')
 
 class HabitEntry(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    habit_id = db.Column(db.Integer, db.ForeignKey("habit.id"))
-    date = db.Column(db.Date)
-    value = db.Column(db.Boolean)
+    habit_id = db.Column(db.Integer, db.ForeignKey("habit.id"), primary_key=True)
+    date = db.Column(db.Date, primary_key=True)
+    value = db.Column(db.Boolean, nullable=False)
 
 class JournalEntry(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    date = db.Column(db.Date)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
+    date = db.Column(db.Date, primary_key=True)
     note = db.Column(db.Text)

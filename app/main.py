@@ -41,18 +41,16 @@ def index_post():
         db.session.commit()
 
         # save_habits
-        habits = [item for item in request.form.items() if item[0].startswith("habit")]
-        print()
-        for habit in habits:
-            print(habit[0])
-            habit_id = Habit.query.filter_by(user_id = uid).filter_by(name = habit[0][6:]).first().id
-            print(habit_id)
-            habit_entry = HabitEntry(
-                habit_id = habit_id,
-                date = today,
-                value = True
-            )
-            db.session.add(habit_entry)
+        user_habits = Habit.query.filter_by(user_id=uid).all()
+        for habit in user_habits:
+            if habit.name in request.form.keys():
+                habit_entry = HabitEntry(
+                    habit_id = habit.id,
+                    date = today,
+                    value = True
+                )
+                db.session.add(habit_entry)
+        
         db.session.commit()
 
 
