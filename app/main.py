@@ -21,11 +21,11 @@ def index():
 
     cnt = JournalEntry.query.filter_by(user_id=uid).filter_by(date=today).count()
     cnt += HabitEntry.query.filter_by(date=today).join(Habit).filter(Habit.user_id=="uid").count()
+    cnt += StateEntry.query.filter_by(date=today).join(State).filter(State.user_id=="uid").count()
     is_entry_empty = not cnt
 
     habits = User.query.filter_by(id=uid).first().habits
-
-    states = ["Mood"]
+    states = User.query.filter_by(id=uid).first().states
 
     return render_template(
         'index.html',
@@ -68,6 +68,25 @@ def index_post():
             db.session.add(habit_entry)
         
         db.session.commit()
+
+        # save_states
+        user_states = State.query.filter_by(user_id=uid).all()
+        for state in user_states:
+            if state.name in request.form.keys():
+                state_value = request.form.get(state.name)
+            else:
+                state_value = None
+
+            state_entry = StateEntry(
+                state_id = state.id,
+                date = today,
+                value = state_value
+            )
+            
+            db.session.add(state_entry)
+        
+        db.session.commit()
+
 
 
     return redirect("index")

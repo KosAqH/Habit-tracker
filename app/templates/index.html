@@ -19,7 +19,14 @@
         <div class="column">
           <h2 class="title is-4">States</h2>
           {% for state in states %}
-            {{state.name}}
+          <div class="field">
+              <legend> {{state.name}} </legend>
+              <label> <input type="radio" name="{{state.name}}" value="1"> 1 </label>
+              <label> <input type="radio" name="{{state.name}}" value="2"> 2 </label>
+              <label> <input type="radio" name="{{state.name}}" value="3"> 3 </label>
+              <label> <input type="radio" name="{{state.name}}" value="4"> 4 </label>
+              <label> <input type="radio" name="{{state.name}}" value="5"> 5 </label>
+          </div>
           {% endfor %}
         </div>
         </div>

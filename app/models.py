@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
 
     journal_entries = db.relationship('JournalEntry', backref='user', cascade='all, delete, delete-orphan')
     habits = db.relationship('Habit', backref='user', cascade='all, delete, delete-orphan')
+    states = db.relationship('State', backref='user', cascade='all, delete, delete-orphan')
 
 class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,3 +34,17 @@ class JournalEntry(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), primary_key=True)
     date = db.Column(db.Date, primary_key=True)
     note = db.Column(db.Text)
+
+class State(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    name = db.Column(db.Text)
+    start_date = db.Column(db.Date)
+    is_active = db.Column(db.Boolean)
+
+    state_entries = db.relationship('StateEntry', backref='state', cascade='all, delete, delete-orphan')
+
+class StateEntry(db.Model):
+    state_id = db.Column(db.Integer, db.ForeignKey("state.id"), primary_key=True)
+    date = db.Column(db.Date, primary_key=True)
+    value = db.Column(db.Integer, nullable=True)
