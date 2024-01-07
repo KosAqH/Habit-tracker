@@ -12,24 +12,26 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100))
     name = db.Column(db.String(1000))
 
-    #journal_entries = db.relationship('JournalEntry', backref='user', cascade='all, delete, delete-orphan')
+    journal_entries = db.relationship('JournalEntry', backref='user', cascade='all, delete, delete-orphan')
+    habits = db.relationship('Habit', backref='user', cascade='all, delete, delete-orphan')
 
 class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.ForeignKey("User.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     name = db.Column(db.Text)
     start_date = db.Column(db.Date)
     is_active = db.Column(db.Boolean)
 
-    habit_entries = db.relationship('Habit', backref='user', cascade='all, delete, delete-orphan')
+    habit_entries = db.relationship('HabitEntry', backref='habit', cascade='all, delete, delete-orphan')
 
 class HabitEntry(db.Model):
-    habit_id = db.Column(db.ForeignKey("Habit.id"))
+    id = db.Column(db.Integer, primary_key=True)
+    habit_id = db.Column(db.Integer, db.ForeignKey("habit.id"))
     date = db.Column(db.Date)
     value = db.Column(db.Boolean)
 
 class JournalEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.ForeignKey("User.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     date = db.Column(db.Date)
     note = db.Column(db.Text)

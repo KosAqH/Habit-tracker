@@ -5,23 +5,27 @@
   <div>
     {% if is_entry_empty %}
     <h2 class="title is-2">What have you done today?</h2>
-    <form>
+    <form method="POST" action="/send_form">
       <div class="columns">
         <div class="column">
           <h2 class="title is-4">Habits</h2>
-          {% for i in [1, 2, 3] %}
-            {{i}}
-          {%- endfor %}
+          {% for habit in habits %}
+            <label class="checkbox">
+              {{habit.name}}
+              <input type="checkbox" name="habit_{{habit.name}}">
+            </label>
+          {% endfor %}
         </div>
         <div class="column">
           <h2 class="title is-4">States</h2>
-          {% for i in [1, 2, 3] %}
-            {{i}}
+          {% for state in states %}
+            {{state.name}}
           {% endfor %}
+        </div>
         </div>
       </div>
       <div class="column is-8 is-offset-2">
-        <textarea class="textarea" placeholder="e.g. Hello world"></textarea>
+        <textarea class="textarea" placeholder="e.g. Hello world" name="journal_entry"></textarea>
       </div>
       <div class="control has-text-centered">
         <button class="button is-primary">Submit</button>
