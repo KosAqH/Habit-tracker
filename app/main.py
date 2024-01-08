@@ -101,19 +101,24 @@ def day_data(date):
     except ValueError:
         abort(404)
 
+    parsed_date = parsed_date.strftime(r'%Y-%m-%d')
+
     habits_entries = db.session.scalars(
-        db.select(HabitEntry).filter_by(date=parsed_date.strftime(r'%Y-%m-%d'))
+        db.select(HabitEntry).filter_by(date=parsed_date)
         .join(Habit).filter_by(user_id=uid)
     ).all()
 
     journal_entry = db.session.scalar(
         db.select(JournalEntry)
-        .filter_by(user_id=uid, date=parsed_date.strftime(r'%Y-%m-%d'))
+        .filter_by(user_id=uid, date=parsed_date)
     )
+
+    note = journal_entry.note if journal_entry else ""
 
     return render_template(
         "day.html",
-        note = journal_entry.note,
+        dates = parsed_date,
+        note = note,
         habits = habits_entries,
         #states = state_entry
     )

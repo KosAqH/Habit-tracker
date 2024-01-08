@@ -6,6 +6,7 @@
     {{date}}
   </h1>
 
+  {% if entry or note%}
   <h3>Habits</h3>
   {% for entry in habits %}
     {{entry.habit.name}} - {{entry.value}}
@@ -17,6 +18,9 @@
   <p>
     {{note}}
   </p>
+  {% else %}
+  <p>No data for given day</p>
+  {% endif %}
 </div>
 
 {% endblock %}
