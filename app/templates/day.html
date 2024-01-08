@@ -3,9 +3,16 @@
 {% block content %}
 <div class="column is-8 is-offset-2">
   <h1>
-    {{date}}
+    {{current_date}}
   </h1>
-
+  <div class="columns">
+    <div class="column">
+      <a href="{{ url_for('main.day_date', date=last_date_link) }}">{{last_date}}</a>
+    </div>
+    <div class="column">
+      <a href="{{ url_for('main.day_date', date=next_date_link) }}">{{next_date}}</a>
+    </div>
+  </div>
   {% if entry or note%}
   <h3>Habits</h3>
   {% for entry in habits %}

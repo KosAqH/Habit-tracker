@@ -93,13 +93,16 @@ def index_post():
 
 @main.route('/day/<date>', methods = ['GET'])
 @login_required
-def day_data(date):
+def day_date(date):
     uid = current_user.id
 
     try:
         parsed_date = datetime.datetime.strptime(date, r"%Y%m%d")
     except ValueError:
         abort(404)
+
+    last_date = (parsed_date - datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
+    next_date = (parsed_date + datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
 
     parsed_date = parsed_date.strftime(r'%Y-%m-%d')
 
@@ -117,7 +120,11 @@ def day_data(date):
 
     return render_template(
         "day.html",
-        dates = parsed_date,
+        current_date = parsed_date,
+        last_date = last_date,
+        last_date_link = last_date.replace("-", ""),
+        next_date = next_date,
+        next_date_link = next_date.replace("-", ""),
         note = note,
         habits = habits_entries,
         #states = state_entry
