@@ -27,8 +27,11 @@ def index():
     habits = User.query.filter_by(id=uid).first().habits
     states = User.query.filter_by(id=uid).first().states
 
+    today_raw = today.strftime(r"%Y%m%d")
+
     return render_template(
         'index.html',
+        today_date = today_raw,
         habits = habits,
         states = states,
         is_entry_empty = is_entry_empty
@@ -111,6 +114,11 @@ def day_date(date):
         .join(Habit).filter_by(user_id=uid)
     ).all()
 
+    state_entries = db.session.scalars(
+        db.select(StateEntry).filter_by(date=parsed_date)
+        .join(State).filter_by(user_id=uid)
+    ).all()
+
     journal_entry = db.session.scalar(
         db.select(JournalEntry)
         .filter_by(user_id=uid, date=parsed_date)
@@ -121,11 +129,89 @@ def day_date(date):
     return render_template(
         "day.html",
         current_date = parsed_date,
+        current_date_link = parsed_date.replace("-", ""),
         last_date = last_date,
         last_date_link = last_date.replace("-", ""),
         next_date = next_date,
         next_date_link = next_date.replace("-", ""),
         note = note,
         habits = habits_entries,
-        #states = state_entry
+        states = state_entries
     )
+
+@main.route('/edit/<date>', methods = ['GET'])
+@login_required
+def edit(date):
+    try:
+        parsed_date = datetime.datetime.strptime(date, r"%Y%m%d")
+    except ValueError:
+        abort(404)
+
+    uid = current_user.id
+    parsed_date = parsed_date.strftime(r'%Y-%m-%d')
+
+    habits_entries = db.session.scalars(
+        db.select(HabitEntry).filter_by(date=parsed_date)
+        .join(Habit).filter_by(user_id=uid)
+    ).all()
+
+    state_entries = db.session.scalars(
+        db.select(StateEntry).filter_by(date=parsed_date)
+        .join(State).filter_by(user_id=uid)
+    ).all()
+
+    journal_entry = db.session.scalar(
+        db.select(JournalEntry)
+        .filter_by(user_id=uid, date=parsed_date)
+    )
+    note = journal_entry.note if journal_entry else ""
+
+    return render_template(
+        "edit.html",
+        habits = habits_entries,
+        states = state_entries,
+        journal_text = note
+    )
+
+@main.route('/update_day', methods = ['POST'])
+@login_required
+def edit_post():
+    uid = current_user.id
+    date = request.referrer.split("/")[-1]
+    formated_data = datetime.datetime.strptime(date, r"%Y%m%d").strftime(r"%Y-%m-%d")
+
+    user_habits = Habit.query.filter_by(user_id=uid).all()
+    for habit in user_habits:
+        if habit.name in request.form.keys():
+            habit_value = True
+        else:
+            habit_value = False
+
+        habit_entry = db.session.scalar(
+            db.select(HabitEntry)
+            .filter_by(habit_id=habit.id, date=formated_data)
+        )
+        habit_entry.value = habit_value
+
+    user_states = State.query.filter_by(user_id=uid).all()
+    for state in user_states:
+        if state.name in request.form.keys():
+            state_value = request.form.get(state.name)
+        else:
+            state_value = None
+
+        state_entry = db.session.scalar(
+            db.select(StateEntry)
+            .filter_by(state_id=state.id, date=formated_data)
+        )
+        state_entry.value = state_value
+        db.session.add(state_entry)
+
+    journal_entry = db.session.scalar(
+        db.select(JournalEntry)
+        .filter_by(user_id=uid, date=formated_data)
+    )
+    journal_entry.note = request.form.get("journal_entry")
+    
+    db.session.commit()
+    return redirect(f"day/{date}")

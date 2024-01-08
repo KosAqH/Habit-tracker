@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-8 is-offset-2">
+    <form method="POST" action="/update_day">
+        <div class="columns">
+          <div class="column">
+            <h2 class="title is-4">Habits</h2>
+            {% for habit in habits %}
+              <label class="checkbox">
+                {{habit.habit.name}}
+                <input type="checkbox" name="{{habit.habit.name}}" value="{{ 'on' if habit.value == True else 'off' }}" {{"checked" if habit.value}}>
+              </label>
+            {% endfor %}
+          </div>
+          <div class="column">
+            <h2 class="title is-4">States</h2>
+            {% for state in states %}
+            <div class="field">
+                <legend> {{state.state.name}} </legend>
+                <label> <input type="radio" name="{{state.state.name}}" value="1" {{"checked" if state.value == 1}}> 1 </label>
+                <label> <input type="radio" name="{{state.state.name}}" value="2" {{"checked" if state.value == 2}}> 2 </label>
+                <label> <input type="radio" name="{{state.state.name}}" value="3" {{"checked" if state.value == 3}}> 3 </label>
+                <label> <input type="radio" name="{{state.state.name}}" value="4" {{"checked" if state.value == 4}}> 4 </label>
+                <label> <input type="radio" name="{{state.state.name}}" value="5" {{"checked" if state.value == 5}}> 5 </label>
+            </div>
+            {% endfor %}
+          </div>
+          </div>
+        </div>
+        <div class="column is-8 is-offset-2">
+          <textarea class="textarea" name="journal_entry">{{journal_text}}</textarea>
+        </div>
+        <div class="control has-text-centered">
+          <button class="button is-primary">Update</button>
+        </div>
+
+</div>
+
+{% endblock %}

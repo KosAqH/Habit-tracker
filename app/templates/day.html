@@ -14,20 +14,30 @@
     </div>
   </div>
   {% if entry or note%}
-  <h3>Habits</h3>
-  {% for entry in habits %}
-    {{entry.habit.name}} - {{entry.value}}
-  {% endfor %}
-
-  <h3>States</h3>
-
-  <h3>Note</h3>
-  <p>
-    {{note}}
-  </p>
+  <div class="columns section">
+    <div class="column">
+      <h3>Habits</h3>
+      {% for entry in habits %}
+       <p> {{entry.habit.name}} - {{entry.value}} </p>
+      {% endfor %}
+    </div>
+    <div class="column">
+      <h3>States</h3>
+      {% for entry in states %}
+        {{entry.state.name}} - {{entry.value}}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="section column is-8 is-offset-2">
+    <h3>Note</h3>
+      <p class="has-text-justified">
+        {{note}}
+      </p>
+  </div>
   {% else %}
   <p>No data for given day</p>
   {% endif %}
+  <a href="{{ url_for('main.edit', date=current_date_link) }}">Update entry</a>
 </div>
 
 {% endblock %}

@@ -42,7 +42,7 @@
     <h2 class="title is-2">Good job!</h2>
     <h2 class="subtitle is-3">You've already saved your today habits!</h2>
     <p>
-      Forgot something? You can edit your entry <a>here</a>.
+      Forgot something? You can edit your entry <a href="{{ url_for('main.edit', date=today_date) }}">here</a>.
     </p>
     {% endif %}
   </div>
