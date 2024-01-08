@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-8 is-offset-2">
+  <h1>
+    Settings
+  </h1>
+  <h3>
+    Habits
+  </h3>
+  {% for habit in habits %}
+    <div class="columns">
+      <div class="column">
+        {{habit.name}}
+      </div>
+      <div class="column">
+        <button>aaa</button>
+      </div>
+    </div>
+  {% endfor %}
+  <div>
+    <form method="POST" action="add_habit">
+      <label class="text">
+        <input type="text" name="habit">
+      </label>
+      <button class="button is-primary">Add habit</button>
+    </form>
+  </div>
+  <h3>
+    States
+  </h3>
+  {% for state in states %}
+    <div class="columns">
+      <div class="column">
+        {{state.name}}
+      </div>
+      <div class="column">
+        <button>aaa</button>
+      </div>
+    </div>
+  {% endfor %}
+  <div>
+    <form method="POST" action="add_state">
+      <label class="text">
+        <input type="text" name="state">
+      </label>
+      <button class="button is-primary">Add state</button>
+    </form>
+  </div>
+  <hr>
+
+  <h1>
+    Download your data
+  </h1>
+</div>
+
+{% endblock %}

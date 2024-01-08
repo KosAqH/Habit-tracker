@@ -205,7 +205,6 @@ def edit_post():
             .filter_by(state_id=state.id, date=formated_data)
         )
         state_entry.value = state_value
-        db.session.add(state_entry)
 
     journal_entry = db.session.scalar(
         db.select(JournalEntry)
@@ -215,3 +214,47 @@ def edit_post():
     
     db.session.commit()
     return redirect(f"day/{date}")
+
+@main.route('/settings', methods = ['GET'])
+@login_required
+def settings():
+    uid = current_user.id
+    return render_template(
+        "settings.html",
+        habits = User.query.filter_by(id=uid).first().habits,
+        states = User.query.filter_by(id=uid).first().states
+    )
+
+@main.route('/add_habit', methods = ['POST'])
+@login_required
+def add_habit():
+    uid = current_user.id
+    formated_data = datetime.date.today()
+
+    habit = Habit(
+        user_id=uid,
+        name=request.form.get("habit"),
+        start_date = formated_data,
+        is_active = True
+    )
+    db.session.add(habit)
+    db.session.commit()
+
+    return redirect("settings")
+
+@main.route('/add_state', methods = ['POST'])
+@login_required
+def add_state():
+    uid = current_user.id
+    formated_data = datetime.date.today()
+
+    state = State(
+        user_id=uid,
+        name=request.form.get("state"),
+        start_date = formated_data,
+        is_active = True
+    )
+    db.session.add(state)
+    db.session.commit()
+
+    return redirect("settings")
