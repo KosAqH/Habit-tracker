@@ -282,3 +282,31 @@ def add_state():
     db.session.commit()
 
     return redirect("settings")
+
+@main.route('/delete_habit', methods = ['POST'])
+@login_required
+def delete_habit():
+    uid = current_user.id
+    habit_id = request.form.get("habit_id")
+
+    habit = db.session.scalar(
+        db.select(Habit)
+        .filter_by(user_id=uid, id=habit_id)
+    )
+    db.session.delete(habit)
+    db.session.commit()
+    return redirect("settings")
+
+@main.route('/delete_state', methods = ['POST'])
+@login_required
+def delete_state():
+    uid = current_user.id
+    state_id = request.form.get("state_id")
+
+    state = db.session.scalar(
+        db.select(State)
+        .filter_by(user_id=uid, id=state_id)
+    )
+    db.session.delete(state)
+    db.session.commit()
+    return redirect("settings")

@@ -14,7 +14,10 @@
         {{habit.name}}
       </div>
       <div class="column">
-        <button>aaa</button>
+        <form action="delete_habit" method="post">
+          <input type=hidden value="{{habit.id}}" name=habit_id />
+          <button class="button is-primary">Remove habit</button>
+        </form>
       </div>
     </div>
   {% endfor %}
@@ -35,7 +38,10 @@
         {{state.name}}
       </div>
       <div class="column">
-        <button>aaa</button>
+        <form action="delete_state" method="post">
+          <input type=hidden value="{{state.id}}" name=state_id />
+          <button class="button is-primary">Remove state</button>
+        </form>
       </div>
     </div>
   {% endfor %}
