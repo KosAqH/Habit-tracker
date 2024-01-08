@@ -148,7 +148,31 @@ def edit(date):
         abort(404)
 
     uid = current_user.id
+    date = parsed_date
     parsed_date = parsed_date.strftime(r'%Y-%m-%d')
+
+    habits = User.query.filter_by(id=uid).first().habits
+    states = User.query.filter_by(id=uid).first().states
+
+    for habit in habits:
+        if not habit.habit_entries:
+            entry = HabitEntry(
+                habit_id=habit.id,
+                date=date,
+                value=False
+            )
+            db.session.add(entry)
+    db.session.commit()
+        
+    for state in states:
+        if not state.state_entries:
+            entry = StateEntry(
+                state_id=state.id,
+                date=date,
+                value=False
+            )
+            db.session.add(entry)
+    db.session.commit()
 
     habits_entries = db.session.scalars(
         db.select(HabitEntry).filter_by(date=parsed_date)
