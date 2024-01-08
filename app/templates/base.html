@@ -15,6 +15,11 @@
         <div class="hero-head">
             <nav class="navbar">
                 <div class="container">
+                    <div class="navbar-brand">
+                        <a href="{{ url_for('main.index') }}" class="navbar-item">
+                            Dashboard
+                        </a>
+                    </div>
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-end">
                             {% if current_user.is_authenticated %}
