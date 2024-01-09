@@ -2,34 +2,58 @@
 
 {% block content %}
 <div class="column is-8 is-offset-2">
-  <h1>
-    {{current_date}}
-  </h1>
-  <div class="columns">
-    <div class="column">
-      <a href="{{ url_for('main.day_date', date=last_date_link) }}">{{last_date}}</a>
+  <div class="level section">
+    <div class="level-item">
+      <p class="title">
+        <a href="{{last_date_link}}"> &#8592; </a>
+      </p>
     </div>
-    <div class="column">
-      <a href="{{ url_for('main.day_date', date=next_date_link) }}">{{next_date}}</a>
+    <div class="level-item">
+      <h1 class="is-3 title">{{current_date}}</h1>
+    </div>
+    <div class="level-item"> 
+      <p class="title">
+        <a href="{{next_date_link}}"> &#8594; </a>
+      </p>
     </div>
   </div>
   {% if entry or note%}
-  <div class="columns section">
+  <div class="columns block">
     <div class="column">
-      <h3>Habits</h3>
-      {% for entry in habits %}
-       <p> {{entry.habit.name}} - {{entry.value}} </p>
-      {% endfor %}
+      <h3 class="is-5 title">Habits</h3>
+      <table class="table center-object">
+        {% for entry in habits %}
+          <tr><td>{{entry.habit.name}}</td>
+            <td>
+              {% if entry.value == True %}
+              &#9989;
+              {% else %}
+              &#10060;
+              {% endif %}
+              <!-- {{entry.value}} -->
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
     </div>
     <div class="column">
-      <h3>States</h3>
-      {% for entry in states %}
-        {{entry.state.name}} - {{entry.value}}
-      {% endfor %}
+      <h3 class="is-5 title">States</h3>
+      <table class="table center-object">
+        {% for entry in states %}
+          <!-- {{entry.state.name}} - {{entry.value}} -->
+          <tr>
+            <td>{{entry.state.name}}</td>
+            <td>{{entry.value}} 
+              
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
     </div>
   </div>
-  <div class="section column is-8 is-offset-2">
-    <h3>Note</h3>
+  <hr>
+  <div class="block column is-10 is-offset-1">
+    <h3 class="is-5 title">Note</h3>
       <p class="has-text-justified">
         {{note}}
       </p>
@@ -37,7 +61,11 @@
   {% else %}
   <p>No data for given day</p>
   {% endif %}
-  <a href="{{ url_for('main.edit', date=current_date_link) }}">Update entry</a>
+  <hr>
+  <div class="block has-text-right">
+    <a class="button is-link" href="{{ url_for('main.edit', date=current_date_link) }}">Update entry</a>
+  </div>
+
 </div>
 
 {% endblock %}
