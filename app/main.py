@@ -346,6 +346,30 @@ def calendar_view(mdate):
     except:
         abort(404)
 
+    if int(month) == 1:
+        last_m = "12"
+        next_m = "02"
+        last_y = f"{int(year)-1}".zfill(4)
+        next_y = year
+
+    elif int(month) == 12:
+        last_m = "11"
+        next_m = "01"
+        last_y = year
+        next_y = f"{int(year)+1}".zfill(4)
+        
+    else:
+        last_m = f"{int(month)-1}".zfill(2)
+        next_m = f"{int(month)+1}".zfill(2)
+        last_y = year
+        next_y = year
+
+    last_month = f"{last_y}{last_m}"
+    next_month = f"{next_y}{next_m}"
+
+    today = datetime.date.today().strftime(r"%Y%m%d")
+    month_name = calendar.month_name[(int(month))]
+
     generated_calendar = []
     for week in cal:
         generated_week = []
@@ -353,18 +377,21 @@ def calendar_view(mdate):
             if day == 0:
                 d = {}
             else:
+                date = f"{mdate}{str(day).zfill(2)}"
                 d = {
                     "link": url_for("main.day_date", 
-                                    date=f"{mdate}{str(day).zfill(2)}"), 
+                                    date=date), 
                     "day": day, 
-                    "active": True
+                    "active": True if date <= today else False
                 }
             generated_week.append(d)
         generated_calendar.append(generated_week)
 
     return render_template(
         "calendar.html",
-        month=month,
+        month=month_name,
         year=year,
-        calendar=generated_calendar
+        calendar=generated_calendar,
+        last_month=url_for("main.calendar_view", mdate=last_month),
+        next_month=url_for("main.calendar_view", mdate=next_month)
     )
