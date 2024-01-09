@@ -139,6 +139,12 @@ def day_date(date):
         states = state_entries
     )
 
+@main.route('/day/', methods = ['GET'])
+@login_required
+def day_date_not_given():
+    current_day = datetime.date.today().strftime(r"%Y%m%d")
+    return redirect(f"/day/{current_day}")
+
 @main.route('/edit/<date>', methods = ['GET'])
 @login_required
 def edit(date):
