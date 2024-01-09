@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-8 is-offset-2">
+  <h1>{{month}} {{year}}</h1>
+  <table>
+    {% for week in calendar %}
+      <tr>
+        {% for value in week %}
+          {% if value %}
+            <td>
+              {% if value.active %}
+                <a href="{{ value.link }}">{{value.day}}</a>
+              {% endif %}
+            </td>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{% endblock %}

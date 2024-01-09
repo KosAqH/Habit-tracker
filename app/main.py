@@ -1,5 +1,5 @@
 from flask import Blueprint
-from flask import render_template, redirect, abort
+from flask import render_template, redirect, abort, url_for
 from flask import request
 
 from flask_login import login_required
@@ -9,6 +9,7 @@ from .models import User, JournalEntry, HabitEntry, Habit, State, StateEntry
 from . import db
 
 import datetime
+import calendar
 
 main = Blueprint('main', __name__)
 
@@ -316,3 +317,46 @@ def delete_state():
     db.session.delete(state)
     db.session.commit()
     return redirect("settings")
+
+@main.route('/calendar/', methods = ['GET'])
+@login_required
+def calendar_date_not_given():
+    current_month = datetime.date.today().strftime(r"%Y%m")
+    return redirect(f"/calendar/{current_month}")
+
+@main.route('/calendar/<mdate>', methods = ['GET'])
+@login_required
+def calendar_view(mdate):
+    year = mdate[:4]
+    month = mdate[4:]
+
+    try:
+        cal = calendar.monthcalendar(int(year), int(month))
+    except:
+        abort(404)
+
+    generated_calendar = []
+    for week in cal:
+        generated_week = []
+        for day in week:
+            if day == 0:
+                d = {}
+            else:
+                d = {
+                    "link": url_for("main.day_date", 
+                                    date=f"{mdate}{str(day).zfill(2)}"), 
+                    "day": day, 
+                    "active": True
+                }
+            generated_week.append(d)
+        generated_calendar.append(generated_week)
+
+    print(generated_calendar)
+   
+
+    return render_template(
+        "calendar.html",
+        month=month,
+        year=year,
+        calendar=generated_calendar
+    )
