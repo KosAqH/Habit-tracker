@@ -2,37 +2,43 @@
 
 {% block content %}
 <div class="column is-8 is-offset-2">
-  <div class="columns is-mobile">
-    <div class="column is-1">
-      <a href="{{last_month}}"> &#8592; </a>
+  <div class="level">
+    <div class="level-item">
+      <p class="title">
+        <a href="{{last_month}}"> &#8592; </a>
+      </p>
     </div>
-    <div class="column">
+    <div class="level-item">
       <h1 class="is-3 title">{{month}} {{year}}</h1>
     </div>
-    <div class="column is-1"> 
-      <a href="{{next_month}}"> &#8594; </a>
+    <div class="level-item"> 
+      <p class="title">
+        <a href="{{next_month}}"> &#8594; </a>
+      </p>
     </div>
   </div>
   
-  <table>
-    {% for week in calendar %}
-      <tr>
-        {% for value in week %}
-          {% if value %}
-            <td>
-              {% if value.active %}
-                <a href="{{ value.link }}">{{value.day}}</a>
-              {% else %}
-                {{value.day}}
-              {% endif %}
-            </td>
-          {% else %}
-            <td></td>
-          {% endif %}
-        {% endfor %}
-      </tr>
-    {% endfor %}
-  </table>
+  <div class="block">
+    <table class="table is-size-5 center-object">
+      {% for week in calendar %}
+        <tr>
+          {% for value in week %}
+            {% if value %}
+              <td>
+                {% if value.active %}
+                  <a href="{{ value.link }}">{{value.day}}</a>
+                {% else %}
+                  {{value.day}}
+                {% endif %}
+              </td>
+            {% else %}
+              <td></td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
 </div>
 
 {% endblock %}
