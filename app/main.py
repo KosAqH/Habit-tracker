@@ -95,6 +95,11 @@ def index_post():
 
     return redirect("index")
 
+@main.route('/future', methods = ['GET'])
+@login_required
+def future():
+    return render_template("future.html")
+
 @main.route('/day/<date>', methods = ['GET'])
 @login_required
 def day_date(date):
@@ -104,6 +109,9 @@ def day_date(date):
         parsed_date = datetime.datetime.strptime(date, r"%Y%m%d")
     except ValueError:
         abort(404)
+    
+    if parsed_date.date() > datetime.date.today():
+        return redirect(url_for("main.future"))
 
     last_date = (parsed_date - datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
     next_date = (parsed_date + datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
@@ -153,6 +161,9 @@ def edit(date):
         parsed_date = datetime.datetime.strptime(date, r"%Y%m%d")
     except ValueError:
         abort(404)
+
+    if parsed_date.date() > datetime.date.today():
+        return redirect(url_for("main.future"))
 
     uid = current_user.id
     date = parsed_date
@@ -350,9 +361,6 @@ def calendar_view(mdate):
                 }
             generated_week.append(d)
         generated_calendar.append(generated_week)
-
-    print(generated_calendar)
-   
 
     return render_template(
         "calendar.html",
