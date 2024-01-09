@@ -2,62 +2,79 @@
 
 {% block content %}
 <div class="column is-8 is-offset-2">
-  <h1>
+  <h3 class="title is-3">
     Settings
-  </h1>
-  <h3>
-    Habits
   </h3>
-  {% for habit in habits %}
-    <div class="columns">
-      <div class="column">
-        {{habit.name}}
-      </div>
-      <div class="column">
-        <form action="delete_habit" method="post">
-          <input type=hidden value="{{habit.id}}" name=habit_id />
-          <button class="button is-primary">Remove habit</button>
-        </form>
-      </div>
+  <div class="block">
+    <h5 class="title is-5">
+      Habits
+    </h5>
+    <table class="table is-fullwidth is-hoverable">
+    {% for habit in habits %}
+      <tr>
+        <td>
+          {{habit.name}}
+        </td>
+        <td class="has-text-right">
+          <form action="delete_habit" method="post">
+            <input type=hidden value="{{habit.id}}" name=habit_id />
+            <button class="button is-danger">Remove habit</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </table>
+    <div class="column is-10 is-offset-1">
+      <form method="POST" action="add_habit">
+        <div class="field has-addons has-addons-centered">
+          <div class="control is-expanded">
+            <input class="input" type="text" name="habit">
+          </div>
+          <div class="control">
+            <button class="button is-primary">Add habit</button>
+          </div>
+        </div>
+      </form>
     </div>
-  {% endfor %}
-  <div>
-    <form method="POST" action="add_habit">
-      <label class="text">
-        <input type="text" name="habit">
-      </label>
-      <button class="button is-primary">Add habit</button>
-    </form>
   </div>
-  <h3>
-    States
-  </h3>
-  {% for state in states %}
-    <div class="columns">
-      <div class="column">
-        {{state.name}}
-      </div>
-      <div class="column">
-        <form action="delete_state" method="post">
-          <input type=hidden value="{{state.id}}" name=state_id />
-          <button class="button is-primary">Remove state</button>
-        </form>
-      </div>
+
+  <div class="block">
+    <h5 class="title is-5">
+      States
+    </h5>
+    <table class="table is-fullwidth is-hoverable">
+    {% for state in states %}
+      <tr>
+        <td>
+          {{state.name}}
+        </td>
+        <td class="has-text-right">
+          <form action="delete_state" method="post">
+            <input type=hidden value="{{state.id}}" name=state_id />
+            <button class="button is-danger">Remove state</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+    <div class="column is-10 is-offset-1">
+      <form method="POST" action="add_state">
+        <div class="field has-addons has-addons-centered">
+          <div class="control is-expanded">
+            <input class="input" type="text" name="state">
+          </div>
+          <div class="control">
+            <button class="button is-primary">Add state</button>
+          </div>
+        </div>
+      </form>
     </div>
-  {% endfor %}
-  <div>
-    <form method="POST" action="add_state">
-      <label class="text">
-        <input type="text" name="state">
-      </label>
-      <button class="button is-primary">Add state</button>
-    </form>
   </div>
   <hr>
 
-  <h1>
+  <!-- <h1>
     Download your data
-  </h1>
+  </h1> -->
 </div>
 
 {% endblock %}
