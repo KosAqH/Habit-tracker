@@ -8,7 +8,7 @@ from flask_login import current_user
 from sqlalchemy.sql import func
 
 from .models import User, JournalEntry, HabitEntry, Habit, State, StateEntry
-from . import db
+from . import db, app
 
 import datetime
 import calendar
@@ -366,6 +366,7 @@ def calendar_date_not_given():
 def calendar_view(mdate):
     year = mdate[:4]
     month = mdate[4:]
+    uid = current_user.id
 
     try:
         cal = calendar.monthcalendar(int(year), int(month))
@@ -394,6 +395,14 @@ def calendar_view(mdate):
     next_month = f"{next_y}{next_m}"
 
     today = datetime.date.today().strftime(r"%Y%m%d")
+
+    min_date = db.session.scalar(
+        func.min(
+            db.select(Habit.start_date).filter_by(user_id=uid)
+        )   
+    )
+    first_date = str(min_date).replace("-", "")
+
     month_name = calendar.month_name[(int(month))]
 
     generated_calendar = []
@@ -408,7 +417,7 @@ def calendar_view(mdate):
                     "link": url_for("main.day_date", 
                                     date=date), 
                     "day": day, 
-                    "active": True if date <= today else False
+                    "active": True if date <= today and date >= first_date else False
                 }
             generated_week.append(d)
         generated_calendar.append(generated_week)
@@ -421,3 +430,8 @@ def calendar_view(mdate):
         last_month=url_for("main.calendar_view", mdate=last_month),
         next_month=url_for("main.calendar_view", mdate=next_month)
     )
+
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
