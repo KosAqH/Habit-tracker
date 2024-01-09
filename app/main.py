@@ -5,6 +5,8 @@ from flask import request
 from flask_login import login_required
 from flask_login import current_user
 
+from sqlalchemy.sql import func
+
 from .models import User, JournalEntry, HabitEntry, Habit, State, StateEntry
 from . import db
 
@@ -100,6 +102,11 @@ def index_post():
 def future():
     return render_template("future.html")
 
+@main.route('/past', methods = ['GET'])
+@login_required
+def past():
+    return render_template("past.html")
+
 @main.route('/day/<date>', methods = ['GET'])
 @login_required
 def day_date(date):
@@ -112,6 +119,15 @@ def day_date(date):
     
     if parsed_date.date() > datetime.date.today():
         return redirect(url_for("main.future"))
+
+    min_date = db.session.scalar(
+        func.min(
+            db.select(Habit.start_date).filter_by(user_id=uid)
+        )   
+    )
+    min_date = str(min_date).replace("-", "")
+    if parsed_date.date() < datetime.datetime.strptime(min_date, r"%Y%m%d").date():
+        return redirect(url_for("main.past"))
 
     last_date = (parsed_date - datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
     next_date = (parsed_date + datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
@@ -164,8 +180,18 @@ def edit(date):
 
     if parsed_date.date() > datetime.date.today():
         return redirect(url_for("main.future"))
-
+    
     uid = current_user.id
+
+    min_date = db.session.scalar(
+        func.min(
+            db.select(Habit.start_date).filter_by(user_id=uid)
+        )   
+    )
+    min_date = str(min_date).replace("-", "")
+    if parsed_date.date() < datetime.datetime.strptime(min_date, r"%Y%m%d").date():
+        return redirect(url_for("main.past"))
+    
     date = parsed_date
     parsed_date = parsed_date.strftime(r'%Y-%m-%d')
 
