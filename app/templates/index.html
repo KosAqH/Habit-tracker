@@ -6,35 +6,44 @@
     {% if is_entry_empty %}
     <h2 class="title is-2">What have you done today?</h2>
     <form method="POST" action="/send_form">
-      <div class="columns">
+      <div class="columns block">
         <div class="column">
           <h2 class="title is-4">Habits</h2>
-          {% for habit in habits %}
-            <label class="checkbox">
-              {{habit.name}}
-              <input type="checkbox" name="{{habit.name}}">
-            </label>
-          {% endfor %}
+          <table class="table center-object is-fullwidth">
+            {% for habit in habits %}
+                <tr>
+                  <td><label for="hid_{{habit.name}}">{{habit.name}}</label></td>
+                  <td class="has-text-right"><input type="checkbox" name="{{habit.name}}" id="hid_{{habit.name}}"></td>
+                </tr>
+            {% endfor %}
+          </table>
         </div>
         <div class="column">
           <h2 class="title is-4">States</h2>
-          {% for state in states %}
-          <div class="field">
-              <legend> {{state.name}} </legend>
-              <label> <input type="radio" name="{{state.name}}" value="1"> 1 </label>
-              <label> <input type="radio" name="{{state.name}}" value="2"> 2 </label>
-              <label> <input type="radio" name="{{state.name}}" value="3"> 3 </label>
-              <label> <input type="radio" name="{{state.name}}" value="4"> 4 </label>
-              <label> <input type="radio" name="{{state.name}}" value="5"> 5 </label>
-          </div>
-          {% endfor %}
+          <table class="table center-object is-fullwidth">
+            {% for state in states %}
+              <tr>
+                <td class="is-vcentered"> {{state.name}} </td>
+                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="1"> 1 </label></td>
+                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="2"> 2 </label></td>
+                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="3"> 3 </label></td>
+                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="4"> 4 </label></td>
+                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="5"> 5 </label></td>
+              </tr>
+              </div>
+            {% endfor %}
+          </table>
         </div>
         </div>
       </div>
-      <div class="column is-8 is-offset-2">
-        <textarea class="textarea" placeholder="e.g. Hello world" name="journal_entry"></textarea>
+      <div class="block">
+        <div class="column is-10 is-offset-1">
+          <h3 class="is-5 title">Note</h3>
+          <textarea class="textarea" placeholder="e.g. Hello world" name="journal_entry"></textarea>
+        </div>
       </div>
-      <div class="control has-text-centered">
+      
+      <div class="control has-text-centered block">
         <button class="button is-primary">Submit</button>
       </div>
     </form>
