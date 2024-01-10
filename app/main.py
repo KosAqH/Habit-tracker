@@ -77,7 +77,7 @@ def plot_habit(dates, habit):
 
     cmap_habit = ListedColormap(["grey", "red", "green"]) # to init
 
-    july.heatmap(dates, data, cmap=cmap_habit)
+    july.heatmap(dates, data, cmap=cmap_habit, cmin=-1, cmax=1)
 
     s = io.BytesIO()
     plt.savefig(s, format='png', transparent=True, bbox_inches="tight")
