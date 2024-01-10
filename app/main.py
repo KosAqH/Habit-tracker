@@ -13,6 +13,19 @@ from . import db, app
 import datetime
 import calendar
 
+# plot
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.colors import ListedColormap
+
+import july
+from july.utils import date_range
+
+import io
+import base64
+
+##
+
 main = Blueprint('main', __name__)
 
 def prepare_habit_stats(habits, today, cnt):
@@ -47,6 +60,31 @@ def prepare_states_stats(states, today, cnt):
         state.n_days = days_of_tracking
         state.avg_value = avg_value
 
+def plot_habits(start_date, end_date, habits):
+    dates = date_range(start_date, end_date)
+
+    for habit in habits:
+        habit.plot = plot_habit(dates, habit)
+
+def plot_habit(dates, habit):
+    data = [-1]*366
+
+    for entry in habit.habit_entries:
+        i = dates.index(entry.date)
+        data[i] = entry.value
+
+    mpl.use('agg') # to init
+
+    cmap_habit = ListedColormap(["grey", "red", "green"]) # to init
+
+    july.heatmap(dates, data, cmap=cmap_habit)
+
+    s = io.BytesIO()
+    plt.savefig(s, format='png', transparent=True, bbox_inches="tight")
+    plt.close()
+    s = base64.b64encode(s.getvalue()).decode("utf-8").replace("\n", "")
+    return f'data:image/png;base64,{s}'
+
 @main.route('/')
 @main.route('/index')
 @login_required
@@ -67,13 +105,14 @@ def index():
     prepare_habit_stats(habits, today, cnt)
     prepare_states_stats(states, today, cnt)
 
+    plot_habits(today - datetime.timedelta(days=365), today, habits)
+
     return render_template(
         'index.html',
         today_date = today_raw,
         habits = habits,
         states = states,
-        is_entry_empty = is_entry_empty,
-        # plots = plots
+        is_entry_empty = is_entry_empty
     )
 
 @main.route('/send_form', methods = ['POST'])

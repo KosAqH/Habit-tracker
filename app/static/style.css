@@ -2,3 +2,7 @@
     margin-left: auto;
     margin-right: auto;
 }
+
+.hover-div:hover {
+    background-color: rgb(241, 241, 241);
+}

@@ -61,8 +61,8 @@
   <div>
     <h2 class="title is-2">Your habits</h2>
       {% for habit in habits %}
-        <div class="block">
-          <h6 class="title is-6">{{habit.name}}</h6>
+        <div class="block box hoverable hover-div">
+          <h6 class="title is-4">{{habit.name}}</h6>
           <div class="level">
             <div class="level-item has-text-centered">
               <div>
@@ -88,6 +88,9 @@
                 <p class="title is-5">{{habit.streak}} days</p>
               </div>
             </div>
+          </div>
+          <div class="column is-10 is-offset-1">
+            <img src="{{habit.plot}}">
           </div>
         </div>
       {% endfor %}
