@@ -85,6 +85,31 @@ def plot_habit(dates, habit):
     s = base64.b64encode(s.getvalue()).decode("utf-8").replace("\n", "")
     return f'data:image/png;base64,{s}'
 
+def plot_states(start_date, end_date, states):
+    dates = date_range(start_date, end_date)
+
+    for state in states:
+        state.plot = plot_state(dates, state)
+
+def plot_state(dates, state):
+    data = [-1]*366
+
+    for entry in state.state_entries:
+        i = dates.index(entry.date)
+        data[i] = entry.value
+
+    mpl.use('agg') # to init
+
+    cmap_state = ListedColormap(["grey", "grey", "darkred", "red", "orange", "yellowgreen", "darkgreen"]) # to init
+
+    july.heatmap(dates, data, cmap=cmap_state, cmin=-1, cmax=5)
+
+    s = io.BytesIO()
+    plt.savefig(s, format='png', transparent=True, bbox_inches="tight")
+    plt.close()
+    s = base64.b64encode(s.getvalue()).decode("utf-8").replace("\n", "")
+    return f'data:image/png;base64,{s}'
+
 @main.route('/')
 @main.route('/index')
 @login_required
@@ -106,6 +131,7 @@ def index():
     prepare_states_stats(states, today, cnt)
 
     plot_habits(today - datetime.timedelta(days=365), today, habits)
+    plot_states(today - datetime.timedelta(days=365), today, states)
 
     return render_template(
         'index.html',

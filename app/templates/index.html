@@ -101,8 +101,8 @@
   <div>
     <h2 class="title is-2">Your states</h2>
       {% for state in states %}
-        <div class="block">
-          <h6 class="title is-6">{{state.name}}</h6>
+        <div class="block box hoverable hover-div">
+          <h6 class="title is-4">{{state.name}}</h6>
           <div class="level">
             <div class="level-item has-text-centered">
               <div>
@@ -122,6 +122,9 @@
                 <p class="title is-5">{{'{:,.2f}'.format(state.avg_value)}}</p>
               </div>
             </div>
+          </div>
+          <div class="column is-10 is-offset-1">
+            <img src="{{state.plot}}">
           </div>
         </div>
       {% endfor %}
