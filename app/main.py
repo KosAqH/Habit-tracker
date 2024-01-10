@@ -281,6 +281,92 @@ def day_date_not_given():
     current_day = datetime.date.today().strftime(r"%Y%m%d")
     return redirect(f"/day/{current_day}")
 
+def is_entry_empty(uid, date):
+    cnt = JournalEntry.query.filter_by(user_id=uid).filter_by(date=date).count()
+    cnt += HabitEntry.query.filter_by(date=date).join(Habit).filter(Habit.user_id=="uid").count()
+    cnt += StateEntry.query.filter_by(date=date).join(State).filter(State.user_id=="uid").count()
+    is_entry_empty = not cnt
+
+    return is_entry_empty
+
+@main.route('/new/<date>', methods = ['GET'])
+@login_required
+def new_entry(date):
+    uid = current_user.id
+    date = datetime.datetime.strptime(date, r"%Y%m%d").date()
+    habits = db.session.scalars(
+        db.select(Habit).filter_by(user_id=uid).filter(Habit.start_date<=date)
+    )
+    states = db.session.scalars(
+        db.select(State).filter_by(user_id=uid).filter(State.start_date<=date)
+    )
+    return render_template(
+        "new.html",
+        habits = habits,
+        states = states
+    )
+
+@main.route('/add_day', methods = ['POST'])
+@login_required
+def new_entry_post():
+    if request.form:
+        uid = current_user.id
+
+        uid = current_user.id
+        date = request.referrer.split("/")[-1]
+        formated_data = datetime.datetime.strptime(date, r"%Y%m%d")
+
+        print(uid)
+        print(formated_data)
+        print(request.form.get("journal_entry"))
+        # save_journal
+        journal = JournalEntry(
+            user_id = uid,
+            date = formated_data,
+            note = request.form.get("journal_entry")
+        )
+
+        db.session.add(journal)
+        db.session.commit()
+
+        # save_habits
+        user_habits = Habit.query.filter_by(user_id=uid).filter(Habit.start_date <= formated_data).all()
+        for habit in user_habits:
+            if habit.name in request.form.keys():
+                habit_value = True
+            else:
+                habit_value = False
+
+            habit_entry = HabitEntry(
+                habit_id = habit.id,
+                date = formated_data,
+                value = habit_value
+            )
+            
+            db.session.add(habit_entry)
+        
+        db.session.commit()
+
+        # save_states
+        user_states = State.query.filter_by(user_id=uid).filter(State.start_date <= formated_data).all()
+        for state in user_states:
+            if state.name in request.form.keys():
+                state_value = request.form.get(state.name)
+            else:
+                state_value = None
+
+            state_entry = StateEntry(
+                state_id = state.id,
+                date = formated_data,
+                value = state_value
+            )
+            
+            db.session.add(state_entry)
+        
+        db.session.commit()
+    
+    return redirect(f"day/{date}")
+
 @main.route('/edit/<date>', methods = ['GET'])
 @login_required
 def edit(date):
@@ -293,6 +379,10 @@ def edit(date):
         return redirect(url_for("main.future"))
     
     uid = current_user.id
+
+    if is_entry_empty(uid, parsed_date.date()):
+        print("redirect")
+        return redirect(url_for("main.new_entry", date=date))
 
     min_date = db.session.scalar(
         func.min(
@@ -310,7 +400,7 @@ def edit(date):
     states = User.query.filter_by(id=uid).first().states
 
     for habit in habits:
-        if not habit.habit_entries:
+        if not habit.habit_entries and date.date() <= habit.start_date:
             entry = HabitEntry(
                 habit_id=habit.id,
                 date=date,
@@ -320,7 +410,7 @@ def edit(date):
     db.session.commit()
         
     for state in states:
-        if not state.state_entries:
+        if not state.state_entries and date.date() <= state.start_date:
             entry = StateEntry(
                 state_id=state.id,
                 date=date,
@@ -359,7 +449,8 @@ def edit_post():
     date = request.referrer.split("/")[-1]
     formated_data = datetime.datetime.strptime(date, r"%Y%m%d").strftime(r"%Y-%m-%d")
 
-    user_habits = Habit.query.filter_by(user_id=uid).all()
+    user_habits = Habit.query.filter_by(user_id=uid).filter(Habit.start_date <= formated_data).all()
+
     for habit in user_habits:
         if habit.name in request.form.keys():
             habit_value = True
@@ -372,7 +463,7 @@ def edit_post():
         )
         habit_entry.value = habit_value
 
-    user_states = State.query.filter_by(user_id=uid).all()
+    user_states = State.query.filter_by(user_id=uid).filter(State.start_date <= formated_data).all()
     for state in user_states:
         if state.name in request.form.keys():
             state_value = request.form.get(state.name)

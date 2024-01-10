@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-8 is-offset-2">
+    <form method="POST" action="/add_day">
+      <h1 class="is-3 title">Edit entry</h1>
+        <div class="columns block">
+          <div class="column">
+            <h2 class="title is-5">Habits</h2>
+            <table class="table center-object is-fullwidth">
+            {% for habit in habits %}
+              <tr>
+                <td>{{habit.name}}</td>
+                <td><input type="checkbox" name="{{habit.name}}" ></td>
+              </tr>
+            {% endfor %}
+          </table>
+          </div>
+          <div class="column">
+            <h2 class="title is-5">States</h2>
+            <table class="table center-object is-fullwidth">
+              {% for state in states %}
+              <tr>
+                  <td>{{state.name}}</td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="1" > 1 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="2" > 2 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="3" > 3 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="4" > 4 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="5" > 5 </label></td>
+              </tr>
+              {% endfor %}
+          </table>
+          </div>
+          </div>
+        </div>
+        <div class="block column is-8 is-offset-2">
+          <h3 class="is-5 title">Note</h3>
+          <textarea class="textarea" name="journal_entry"></textarea>
+        </div>
+        <div class="block control has-text-centered">
+          <button class="button is-primary">Create</button>
+        </div>
+
+</div>
+
+{% endblock %}
