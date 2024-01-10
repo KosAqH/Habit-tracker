@@ -4,17 +4,21 @@
 <div class="column is-8 is-offset-2">
   <div class="level section">
     <div class="level-item">
+      {% if not is_first_day %}
       <p class="title">
         <a href="{{last_date_link}}"> &#8592; </a>
       </p>
+      {% endif %}
     </div>
     <div class="level-item">
       <h1 class="is-3 title">{{current_date}}</h1>
     </div>
     <div class="level-item"> 
+      {% if not is_last_day %}
       <p class="title">
         <a href="{{next_date_link}}"> &#8594; </a>
       </p>
+      {% endif %}
     </div>
   </div>
   {% if entry or note%}

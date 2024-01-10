@@ -226,6 +226,14 @@ def day_date(date):
             db.select(Habit.start_date).filter_by(user_id=uid)
         )   
     )
+    
+    is_last_day = False
+    is_first_day = False
+    if parsed_date.date() == datetime.date.today():
+        is_last_day = True
+    elif parsed_date.date() <= min_date:
+        is_first_day = True
+
     min_date = str(min_date).replace("-", "")
     if parsed_date.date() < datetime.datetime.strptime(min_date, r"%Y%m%d").date():
         return redirect(url_for("main.past"))
@@ -262,7 +270,9 @@ def day_date(date):
         next_date_link = next_date.replace("-", ""),
         note = note,
         habits = habits_entries,
-        states = state_entries
+        states = state_entries,
+        is_last_day = is_last_day,
+        is_first_day = is_first_day
     )
 
 @main.route('/day/', methods = ['GET'])
