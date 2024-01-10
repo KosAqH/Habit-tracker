@@ -60,6 +60,68 @@
 
   <div>
     <h2 class="title is-2">Your habits</h2>
+      {% for habit in habits %}
+        <div class="block">
+          <h6 class="title is-6">{{habit.name}}</h6>
+          <div class="level">
+            <div class="level-item has-text-centered">
+              <div>
+                <p class="heading">Tracking since</p>
+                <p class="title is-5">{{habit.start_date}}</p>
+              </div>
+            </div>
+            <div class="level-item has-text-centered">
+              <div>
+                <p class="heading">Tracking for</p>
+                <p class="title is-5">{{habit.n_days}} days</p>
+              </div>
+            </div>
+            <div class="level-item has-text-centered">
+              <div>
+                <p class="heading">Days with habit done</p>
+                <p class="title is-5">{{habit.percentage}} %</p>
+              </div>
+            </div>
+            <div class="level-item has-text-centered">
+              <div>
+                <p class="heading">Current unbroken streak</p>
+                <p class="title is-5">{{habit.streak}} days</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+  </div>
+
+  <hr>
+
+  <div>
+    <h2 class="title is-2">Your states</h2>
+      {% for state in states %}
+        <div class="block">
+          <h6 class="title is-6">{{state.name}}</h6>
+          <div class="level">
+            <div class="level-item has-text-centered">
+              <div>
+                <p class="heading">Tracking since</p>
+                <p class="title is-5">{{state.start_date}}</p>
+              </div>
+            </div>
+            <div class="level-item has-text-centered">
+              <div>
+                <p class="heading">Tracking for</p>
+                <p class="title is-5">{{state.n_days}} days</p>
+              </div>
+            </div>
+            <div class="level-item has-text-centered">
+              <div>
+                <p class="heading">Average state value</p>
+                <p class="title is-5">{{'{:,.2f}'.format(state.avg_value)}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
   </div>
 
 </div>

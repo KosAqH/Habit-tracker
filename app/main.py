@@ -15,6 +15,38 @@ import calendar
 
 main = Blueprint('main', __name__)
 
+def prepare_habit_stats(habits, today, cnt):
+    today_entry_exists = 1 if cnt else 0
+    
+    for habit in habits:
+        days_of_tracking = (today - habit.start_date).days + today_entry_exists
+        days_with_habit_done = sum(entry.value for entry in habit.habit_entries)
+        
+        ratio = days_with_habit_done/(days_of_tracking)
+        percentage = ratio * 100
+
+        i = 0
+        for entry in habit.habit_entries[::-1]:
+            if entry.value == False:
+                break
+            i += 1
+        streak = i
+
+        habit.n_days = days_of_tracking
+        habit.percentage = int(percentage)
+        habit.streak = streak
+
+def prepare_states_stats(states, today, cnt):
+    today_entry_exists = 1 if cnt else 0
+    
+    for state in states:
+        days_of_tracking = (today - state.start_date).days + today_entry_exists
+
+        avg_value = sum((entry.value for entry in state.state_entries))/len(state.state_entries)
+
+        state.n_days = days_of_tracking
+        state.avg_value = avg_value
+
 @main.route('/')
 @main.route('/index')
 @login_required
@@ -32,12 +64,16 @@ def index():
 
     today_raw = today.strftime(r"%Y%m%d")
 
+    prepare_habit_stats(habits, today, cnt)
+    prepare_states_stats(states, today, cnt)
+
     return render_template(
         'index.html',
         today_date = today_raw,
         habits = habits,
         states = states,
-        is_entry_empty = is_entry_empty
+        is_entry_empty = is_entry_empty,
+        # plots = plots
     )
 
 @main.route('/send_form', methods = ['POST'])
