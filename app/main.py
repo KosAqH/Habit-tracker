@@ -13,105 +13,9 @@ from . import db, app
 import datetime
 import calendar
 
-# plot
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-from matplotlib.colors import ListedColormap
-
-import july
-from july.utils import date_range
-
-import io
-import base64
-
-##
+from .plot_handler import PlotManager
 
 main = Blueprint('main', __name__)
-
-def prepare_habit_stats(habits, today, cnt):
-    today_entry_exists = 1 if cnt else 0
-    
-    for habit in habits:
-        days_of_tracking = (today - habit.start_date).days + today_entry_exists
-        days_with_habit_done = sum(entry.value for entry in habit.habit_entries)
-        
-        ratio = days_with_habit_done/(days_of_tracking) if days_of_tracking else 0
-        percentage = ratio * 100
-
-        i = 0
-        for entry in habit.habit_entries[::-1]:
-            if entry.value == False:
-                break
-            i += 1
-        streak = i
-
-        habit.n_days = days_of_tracking
-        habit.percentage = int(percentage)
-        habit.streak = streak
-
-def prepare_states_stats(states, today, cnt):
-    today_entry_exists = 1 if cnt else 0
-    
-    for state in states:
-        days_of_tracking = (today - state.start_date).days + today_entry_exists
-
-        if state.state_entries:
-            avg_value = sum((entry.value for entry in state.state_entries))/len(state.state_entries)
-        else:
-            avg_value = 0
-
-        state.n_days = days_of_tracking
-        state.avg_value = avg_value
-
-def plot_habits(start_date, end_date, habits):
-    dates = date_range(start_date, end_date)
-
-    for habit in habits:
-        habit.plot = plot_habit(dates, habit)
-
-def plot_habit(dates, habit):
-    data = [-1]*366
-
-    for entry in habit.habit_entries:
-        i = dates.index(entry.date)
-        data[i] = entry.value
-
-    mpl.use('agg') # to init
-
-    cmap_habit = ListedColormap(["grey", "red", "green"]) # to init
-
-    july.heatmap(dates, data, cmap=cmap_habit, cmin=-1, cmax=1)
-
-    s = io.BytesIO()
-    plt.savefig(s, format='png', transparent=True, bbox_inches="tight")
-    plt.close()
-    s = base64.b64encode(s.getvalue()).decode("utf-8").replace("\n", "")
-    return f'data:image/png;base64,{s}'
-
-def plot_states(start_date, end_date, states):
-    dates = date_range(start_date, end_date)
-
-    for state in states:
-        state.plot = plot_state(dates, state)
-
-def plot_state(dates, state):
-    data = [-1]*366
-
-    for entry in state.state_entries:
-        i = dates.index(entry.date)
-        data[i] = entry.value
-
-    mpl.use('agg') # to init
-
-    cmap_state = ListedColormap(["grey", "grey", "darkred", "red", "orange", "yellowgreen", "darkgreen"]) # to init
-
-    july.heatmap(dates, data, cmap=cmap_state, cmin=-1, cmax=5)
-
-    s = io.BytesIO()
-    plt.savefig(s, format='png', transparent=True, bbox_inches="tight")
-    plt.close()
-    s = base64.b64encode(s.getvalue()).decode("utf-8").replace("\n", "")
-    return f'data:image/png;base64,{s}'
 
 @main.route('/')
 @main.route('/index')
@@ -130,11 +34,10 @@ def index():
 
     today_raw = today.strftime(r"%Y%m%d")
 
-    prepare_habit_stats(habits, today, cnt)
-    prepare_states_stats(states, today, cnt)
-
-    plot_habits(today - datetime.timedelta(days=365), today, habits)
-    plot_states(today - datetime.timedelta(days=365), today, states)
+    habits_plots = PlotManager(habits, "Habit", today)
+    states_plots = PlotManager(states, "State", today)
+    habits_plots.make_plots()
+    states_plots.make_plots()
 
     return render_template(
         'index.html',
