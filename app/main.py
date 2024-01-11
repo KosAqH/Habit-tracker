@@ -35,7 +35,7 @@ def prepare_habit_stats(habits, today, cnt):
         days_of_tracking = (today - habit.start_date).days + today_entry_exists
         days_with_habit_done = sum(entry.value for entry in habit.habit_entries)
         
-        ratio = days_with_habit_done/(days_of_tracking)
+        ratio = days_with_habit_done/(days_of_tracking) if days_of_tracking else 0
         percentage = ratio * 100
 
         i = 0
@@ -55,7 +55,10 @@ def prepare_states_stats(states, today, cnt):
     for state in states:
         days_of_tracking = (today - state.start_date).days + today_entry_exists
 
-        avg_value = sum((entry.value for entry in state.state_entries))/len(state.state_entries)
+        if state.state_entries:
+            avg_value = sum((entry.value for entry in state.state_entries))/len(state.state_entries)
+        else:
+            avg_value = 0
 
         state.n_days = days_of_tracking
         state.avg_value = avg_value
@@ -231,7 +234,7 @@ def day_date(date):
     is_first_day = False
     if parsed_date.date() == datetime.date.today():
         is_last_day = True
-    elif parsed_date.date() <= min_date:
+    if parsed_date.date() <= min_date:
         is_first_day = True
 
     min_date = str(min_date).replace("-", "")
