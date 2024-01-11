@@ -35,24 +35,24 @@ class DashboardStatsHandler():
         
     def prepare_habit_data(self,
             habits: list[Habit],
-            do_today_entry_exists: int,
+            does_today_entry_exists: int,
             today: datetime.date = datetime.date.today()
         ) -> None:
 
         for habit in habits:
-            habit.n_days = StatsUtils.get_tracking_days_count(habit, today, do_today_entry_exists)
+            habit.n_days = StatsUtils.get_tracking_days_count(habit, today, does_today_entry_exists)
             habit.percentage = StatsUtils.get_habit_fulfillment_percentage(habit, habit.n_days)
             habit.streak = StatsUtils.get_current_streak(habit)
 
     def prepare_state_data(
             self,
             states: list[State],
-            do_today_entry_exists: int,
+            does_today_entry_exists: int,
             today: datetime.date = datetime.date.today()
         ) -> None:
 
         for state in states:
-            state.n_days = StatsUtils.get_tracking_days_count(state, today, do_today_entry_exists)
+            state.n_days = StatsUtils.get_tracking_days_count(state, today, does_today_entry_exists)
             state.avg_value = StatsUtils.get_avg_state_value(state)
 
 class StatsUtils():
@@ -69,10 +69,10 @@ class StatsUtils():
             cls,
             object: Habit | State,
             today: datetime.date,
-            do_today_entry_exists: int
+            does_today_entry_exists: int
         ) -> int:
         
-        return (today - object.start_date).days + do_today_entry_exists
+        return (today - object.start_date).days + does_today_entry_exists
 
     @classmethod
     def get_habit_fulfillment_percentage(
@@ -101,11 +101,13 @@ class StatsUtils():
 class PlotManager:
     def __init__(
         self,
-        today_date: datetime.date
+        today_date: datetime.date,
+        today_entry_exists: int
     ) -> None:
         self.today = today_date
         self.data_handler = DashboardStatsHandler(self.today)
         self.dates = self.get_dates()
+        self.today_entry_exists = today_entry_exists
     
     def specify_data_preparation_method(self, data_type):
         if data_type == "Habit":
@@ -117,7 +119,7 @@ class PlotManager:
 
     def make_plots(self, data, data_type):
         self.specify_data_preparation_method(data_type)
-        self.prepare_data(data, 1)
+        self.prepare_data(data, self.today_entry_exists)
         for obj in data:
             data = self.get_data_for_plot(obj, data_type)
             plotter = Plotter(self.dates, data, data_type)

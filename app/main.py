@@ -25,16 +25,16 @@ def index():
     today = datetime.date.today()
 
     cnt = JournalEntry.query.filter_by(user_id=uid).filter_by(date=today).count()
-    cnt += HabitEntry.query.filter_by(date=today).join(Habit).filter(Habit.user_id=="uid").count()
-    cnt += StateEntry.query.filter_by(date=today).join(State).filter(State.user_id=="uid").count()
-    is_entry_empty = not cnt
+    cnt += HabitEntry.query.filter_by(date=today).join(Habit).filter(Habit.user_id==uid).count()
+    cnt += StateEntry.query.filter_by(date=today).join(State).filter(State.user_id==uid).count()
+    does_today_entry_exists = min(cnt, 1)
 
     habits = User.query.filter_by(id=uid).first().habits
     states = User.query.filter_by(id=uid).first().states
 
     today_raw = today.strftime(r"%Y%m%d")
 
-    pm = PlotManager(today)
+    pm = PlotManager(today, does_today_entry_exists )
     pm.make_plots(habits, "Habit")
     pm.make_plots(states, "State")
 
@@ -43,7 +43,7 @@ def index():
         today_date = today_raw,
         habits = habits,
         states = states,
-        is_entry_empty = is_entry_empty
+        is_entry_empty = not bool(does_today_entry_exists)
     )
 
 @main.route('/send_form', methods = ['POST'])
