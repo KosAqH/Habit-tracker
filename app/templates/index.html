@@ -3,39 +3,45 @@
 {% block content %}
 <div class="column is-8 is-offset-2">
   <div>
-    {% if is_entry_empty %}
     <h2 class="title is-2">What have you done today?</h2>
-    <form method="POST" action="/send_form">
-      <div class="columns block">
-        <div class="column">
-          <h2 class="title is-4">Habits</h2>
-          <table class="table center-object is-fullwidth">
-            {% for habit in habits %}
+    {% if is_entry_empty %}
+      <form method="POST" action="/send_form">
+        {% if habits or states %}
+        <div class="columns block">
+          <div class="column">
+            <h2 class="title is-4">Habits</h2>
+            <table class="table center-object is-fullwidth">
+              {% for habit in habits %}
+                  <tr>
+                    <td><label for="hid_{{habit.name}}">{{habit.name}}</label></td>
+                    <td class="has-text-right"><input type="checkbox" name="{{habit.name}}" id="hid_{{habit.name}}"></td>
+                  </tr>
+              {% endfor %}
+            </table>
+          </div>
+          <div class="column">
+            <h2 class="title is-4">States</h2>
+            <table class="table center-object is-fullwidth">
+              {% for state in states %}
                 <tr>
-                  <td><label for="hid_{{habit.name}}">{{habit.name}}</label></td>
-                  <td class="has-text-right"><input type="checkbox" name="{{habit.name}}" id="hid_{{habit.name}}"></td>
+                  <td class="is-vcentered"> {{state.name}} </td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="1"> 1 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="2"> 2 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="3"> 3 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="4"> 4 </label></td>
+                  <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="5"> 5 </label></td>
                 </tr>
-            {% endfor %}
-          </table>
+                </div>
+              {% endfor %}
+            </table>
+          </div>
         </div>
-        <div class="column">
-          <h2 class="title is-4">States</h2>
-          <table class="table center-object is-fullwidth">
-            {% for state in states %}
-              <tr>
-                <td class="is-vcentered"> {{state.name}} </td>
-                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="1"> 1 </label></td>
-                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="2"> 2 </label></td>
-                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="3"> 3 </label></td>
-                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="4"> 4 </label></td>
-                <td class="has-text-centered"><label> <input type="radio" name="{{state.name}}" value="5"> 5 </label></td>
-              </tr>
-              </div>
-            {% endfor %}
-          </table>
-        </div>
-        </div>
+      {% else %}
+      <div class="content block has-text-centered">
+        <p class="is-size-4">You don't have anything to keep track of!</p>
+        <p class="is-size-5">Go to <a href="{{url_for('main.settings')}}">settings</a> and add some habits or states to start</p>
       </div>
+      {% endif %}
       <div class="block">
         <div class="column is-10 is-offset-1">
           <h3 class="is-5 title">Note</h3>
@@ -56,8 +62,8 @@
     {% endif %}
   </div>
 
+  {% if habits %}
   <hr>
-
   <div>
     <h2 class="title is-2">Your habits</h2>
       {% for habit in habits %}
@@ -95,9 +101,10 @@
         </div>
       {% endfor %}
   </div>
-
+  {% endif %}
+  
+  {% if states %}
   <hr>
-
   <div>
     <h2 class="title is-2">Your states</h2>
       {% for state in states %}
@@ -129,6 +136,7 @@
         </div>
       {% endfor %}
   </div>
+  {% endif %}
 
 </div>
 
