@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import matplotlib.figure
 from matplotlib.colors import ListedColormap
 
 import july
@@ -63,7 +62,7 @@ class StatsUtils():
             avg_value = sum((entry.value for entry in state.state_entries))/len(state.state_entries)
         else:
             avg_value = 0
-        return avg_value
+        return round(avg_value, 2)
     
     @classmethod
     def get_tracking_days_count(
@@ -80,10 +79,10 @@ class StatsUtils():
             cls, 
             habit: Habit, 
             days_of_tracking: int
-        ) -> float:
+        ) -> int:
         days_with_habit_done = sum(entry.value for entry in habit.habit_entries)
         ratio = days_with_habit_done/(days_of_tracking) if days_of_tracking else 0
-        percentage = ratio * 100
+        percentage = round(ratio * 100)
 
         return percentage
     
@@ -102,15 +101,13 @@ class StatsUtils():
 class PlotManager:
     def __init__(
         self,
-        data_objects,
-        data_type: Literal["Habit", "State"],
         today_date: datetime.date
     ) -> None:
-        self.data_objects = data_objects
-        self.type = data_type
         self.today = today_date
         self.data_handler = DashboardStatsHandler(self.today)
         self.dates = self.get_dates()
+    
+    def specify_data_preparation_method(self, data_type):
         if data_type == "Habit":
             self.prepare_data = self.data_handler.prepare_habit_data
         elif data_type == "State":
@@ -118,11 +115,12 @@ class PlotManager:
         else:
             raise(ValueError)
 
-    def make_plots(self):
-        self.prepare_data(self.data_objects, 1)
-        for obj in self.data_objects:
-            data = self.get_data(obj)
-            plotter = Plotter(self.dates, data, self.type)
+    def make_plots(self, data, data_type):
+        self.specify_data_preparation_method(data_type)
+        self.prepare_data(data, 1)
+        for obj in data:
+            data = self.get_data_for_plot(obj, data_type)
+            plotter = Plotter(self.dates, data, data_type)
             obj.plot = plotter.plot()
 
     def get_dates(self) -> list[datetime.date]:
@@ -133,10 +131,10 @@ class PlotManager:
         )
         return dates
     
-    def get_data(self, obj):
-        if self.type == "Habit":
+    def get_data_for_plot(self, obj, data_type):
+        if data_type == "Habit":
             entries = obj.habit_entries
-        elif self.type == "State":
+        elif data_type == "State":
             entries = obj.state_entries
         else:
             raise(ValueError)
@@ -162,8 +160,9 @@ class Plotter:
         """
         doc to musi byc odpowiednik funkcji plot_habit i plot_state
         """
-        self._fig, self._ax = plt.subplots()
-        july.heatmap(self.dates, self.data, ax=self._ax, **self.params)
+        mpl.use('agg') # turn off matplotlib gui
+        july.heatmap(self.dates, self.data, **self.params)
+        self._fig = plt.gcf()
         encoded_image = self.plot_to_base64()
 
         return encoded_image

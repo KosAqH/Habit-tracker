@@ -34,10 +34,9 @@ def index():
 
     today_raw = today.strftime(r"%Y%m%d")
 
-    habits_plots = PlotManager(habits, "Habit", today)
-    states_plots = PlotManager(states, "State", today)
-    habits_plots.make_plots()
-    states_plots.make_plots()
+    pm = PlotManager(today)
+    pm.make_plots(habits, "Habit")
+    pm.make_plots(states, "State")
 
     return render_template(
         'index.html',
