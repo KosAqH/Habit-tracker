@@ -388,12 +388,15 @@ def edit(date):
             db.select(Habit.start_date).filter_by(user_id=uid)
         )   
     )
-    min_date = str(min_date).replace("-", "")
+    if min_date is None:
+        min_date = datetime.date.today().strftime(r"%Y%m%d")
+    else:
+        min_date = str(min_date).replace("-", "")
+        
     if parsed_date.date() < datetime.datetime.strptime(min_date, r"%Y%m%d").date():
         return redirect(url_for("main.past"))
     
     if is_entry_empty(uid, parsed_date.date()):
-        print("redirect")
         return redirect(url_for("main.new_entry", date=date))
     
     date = parsed_date
