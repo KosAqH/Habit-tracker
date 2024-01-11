@@ -1,16 +1,30 @@
+from functools import wraps
 from flask import Blueprint, render_template, redirect, request, url_for, flash
 from app import app, db
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import User
 from flask_login import login_user, logout_user, login_required
+from flask_login import current_user
 
 auth = Blueprint('auth', __name__)
 
-@auth.route('/login')
+def login_forbidden(f):
+    @wraps(f)
+    def decorated_view(*args, **kwargs): 
+        if current_user.is_authenticated:
+            return redirect(url_for('main.index'))
+        else:
+            return f(*args, **kwargs)
+
+    return decorated_view
+
+@auth.route('/login', methods=['GET'])
+@login_forbidden
 def login():
     return render_template('login.html')
 
 @auth.route('/login', methods=['POST'])
+@login_forbidden
 def login_post():
     # login code goes here
     email = request.form.get('email')
@@ -28,11 +42,13 @@ def login_post():
     login_user(user)
     return redirect(url_for('main.index'))
 
-@auth.route('/signup')
+@auth.route('/signup', methods=['GET'])
+@login_forbidden
 def signup():
     return render_template('signup.html')
 
 @auth.route('/signup', methods=['POST'])
+@login_forbidden
 def signup_post():
     email = request.form.get('email')
     name = request.form.get('name')
