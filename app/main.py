@@ -287,14 +287,24 @@ def is_entry_empty(uid, date):
 @main.route('/new/<date>', methods = ['GET'])
 @login_required
 def new_entry(date):
+    """
+    Returning page with form, that user can use to enter
+    data about particular day.
+
+    parameters:
+        date -- date entered in format YYYYMMDD, where Y = Year,
+            M = Month and D = Day. For example 20230220
+    """
     uid = current_user.id
     date = datetime.datetime.strptime(date, r"%Y%m%d").date()
+
     habits = db.session.scalars(
         db.select(Habit).filter_by(user_id=uid).filter(Habit.start_date<=date)
     )
     states = db.session.scalars(
         db.select(State).filter_by(user_id=uid).filter(State.start_date<=date)
     )
+
     return render_template(
         "new.html",
         habits = habits,
@@ -304,63 +314,35 @@ def new_entry(date):
 @main.route('/add_day', methods = ['POST'])
 @login_required
 def new_entry_post():
+    """
+    Handle data entered by user on new_entry page
+    """
     if request.form:
         uid = current_user.id
+        raw_date = request.referrer.split("/")[-1]
+        date = datetime.datetime.strptime(raw_date, r"%Y%m%d")
 
-        uid = current_user.id
-        date = request.referrer.split("/")[-1]
-        formated_data = datetime.datetime.strptime(date, r"%Y%m%d")
-
-        print(uid)
-        print(formated_data)
-        print(request.form.get("journal_entry"))
-        # save_journal
-        journal = JournalEntry(
-            user_id = uid,
-            date = formated_data,
-            note = request.form.get("journal_entry")
-        )
-
-        db.session.add(journal)
-        db.session.commit()
+        # save_entry
+        journal_entry = request.form.get("journal_entry")
+        save_journal_entry(uid, date, journal_entry)
 
         # save_habits
-        user_habits = Habit.query.filter_by(user_id=uid).filter(Habit.start_date <= formated_data).all()
-        for habit in user_habits:
-            if habit.name in request.form.keys():
-                habit_value = True
-            else:
-                habit_value = False
+        user_habits = db.session.scalars(
+            db.select(Habit).filter_by(user_id=uid).filter(Habit.start_date <= date)
+            # only habits that started not later than specified day
+        ).all()
+        save_habit_entries(user_habits, request.form, date)
 
-            habit_entry = HabitEntry(
-                habit_id = habit.id,
-                date = formated_data,
-                value = habit_value
-            )
-            
-            db.session.add(habit_entry)
-        
-        db.session.commit()
+        # handle states
+        user_states = db.session.scalars(
+            db.select(State).filter_by(user_id=uid).filter(State.start_date <= date)
+            # only states that started not later than specified day
+        ).all()
+        save_state_entries(user_states, request.form, date)
 
-        # save_states
-        user_states = State.query.filter_by(user_id=uid).filter(State.start_date <= formated_data).all()
-        for state in user_states:
-            if state.name in request.form.keys():
-                state_value = request.form.get(state.name)
-            else:
-                state_value = None
-
-            state_entry = StateEntry(
-                state_id = state.id,
-                date = formated_data,
-                value = state_value
-            )
-            
-            db.session.add(state_entry)
-        
         db.session.commit()
     
-    return redirect(f"day/{date}")
+    return redirect(f"day/{raw_date}")
 
 @main.route('/edit/<date>', methods = ['GET'])
 @login_required
