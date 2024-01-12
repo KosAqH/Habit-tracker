@@ -1,3 +1,6 @@
+import datetime
+import calendar
+
 from flask import Blueprint
 from flask import render_template, redirect, abort, url_for
 from flask import request
@@ -7,32 +10,29 @@ from flask_login import current_user
 
 from sqlalchemy.sql import func
 
-from .models import User, JournalEntry, HabitEntry, Habit, State, StateEntry
 from . import db, app
-
-import datetime
-import calendar
-
+from .models import User, JournalEntry, HabitEntry, Habit, State, StateEntry
 from .plot_handler import PlotManager
+
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
 @main.route('/index')
+@main.route('/dashboard')
 @login_required
 def index():
+    """
+    Returning main page of logged in user.
+    """
     uid = current_user.id
     today = datetime.date.today()
-
-    cnt = JournalEntry.query.filter_by(user_id=uid).filter_by(date=today).count()
-    cnt += HabitEntry.query.filter_by(date=today).join(Habit).filter(Habit.user_id==uid).count()
-    cnt += StateEntry.query.filter_by(date=today).join(State).filter(State.user_id==uid).count()
-    does_today_entry_exists = min(cnt, 1)
-
-    habits = User.query.filter_by(id=uid).first().habits
-    states = User.query.filter_by(id=uid).first().states
-
     today_raw = today.strftime(r"%Y%m%d")
+    
+    does_today_entry_exists = is_entry_empty(uid, today)
+    
+    habits = current_user.habits
+    states = current_user.states
 
     pm = PlotManager(today, does_today_entry_exists )
     pm.make_plots(habits, "Habit")
@@ -43,7 +43,7 @@ def index():
         today_date = today_raw,
         habits = habits,
         states = states,
-        is_entry_empty = not bool(does_today_entry_exists)
+        is_entry_empty = does_today_entry_exists
     )
 
 @main.route('/send_form', methods = ['POST'])
