@@ -155,6 +155,9 @@ def save_state_entry(
 @main.route('/send_form', methods = ['POST'])
 @login_required
 def index_post():
+    """
+    Handle data entered by user on main page
+    """
     if request.form:
         uid = current_user.id
         today = datetime.date.today()
@@ -177,17 +180,34 @@ def index_post():
 
         db.session.commit()
 
-    return redirect("index")
+    return redirect(url_for("main.index"))
 
 @main.route('/future', methods = ['GET'])
 @login_required
 def future():
+    """
+    View used when user try to see day page for future date
+    """
     return render_template("future.html")
 
 @main.route('/past', methods = ['GET'])
 @login_required
 def past():
+    """
+    View used when user try to see day page for day before
+    this user was tracking any activity
+    """
     return render_template("past.html")
+
+@main.route('/day/', methods = ['GET'])
+@login_required
+def day_date_not_given():
+    """
+    View used to redirecting user to today day page, if he enters url
+    without specified date parameter.
+    """
+    current_day = datetime.date.today().strftime(r"%Y%m%d")
+    return redirect(url_for("main.day_date", date=current_day))
 
 @main.route('/day/<date>', methods = ['GET'])
 @login_required
@@ -255,12 +275,6 @@ def day_date(date):
         is_last_day = is_last_day,
         is_first_day = is_first_day
     )
-
-@main.route('/day/', methods = ['GET'])
-@login_required
-def day_date_not_given():
-    current_day = datetime.date.today().strftime(r"%Y%m%d")
-    return redirect(f"/day/{current_day}")
 
 def is_entry_empty(uid, date):
     cnt = JournalEntry.query.filter_by(user_id=uid).filter_by(date=date).count()
