@@ -8,6 +8,8 @@ from flask import request
 from flask_login import login_required
 from flask_login import current_user
 
+from werkzeug.datastructures import ImmutableMultiDict
+
 from sqlalchemy.sql import func
 
 from . import db, app
@@ -46,60 +48,134 @@ def index():
         is_entry_empty = does_today_entry_exists
     )
 
+def save_journal_entry(
+        uid: int,
+        date: datetime.date,
+        note: str
+    ) -> None:
+    """
+    Save journal entry to database.
+
+    Arguments:
+        uid -- user's id
+        date -- date object
+        note -- string containing journal entry
+    """
+    journal = JournalEntry(
+            user_id = uid,
+            date = date,
+            note = note
+        )
+    
+    db.session.add(journal)
+
+def save_habit_entries(
+        habits: list[Habit],
+        fields: ImmutableMultiDict[str, str],
+        date: datetime.date
+    ) -> None:
+    """
+    Save all habit entries to database
+
+    Arguments:
+        habits -- collection containing all Habit objects, belonging
+            to one user
+        checked_values -- dict containing all names of entered form fields
+        date -- date object
+    """
+    for habit in habits:
+        if fields.get(habit.name, default=False):
+            habit_value = True
+        else:
+            habit_value = False
+
+        save_habit_entry(habit.id, date, habit_value)
+
+def save_state_entries(
+        states: list[State],
+        fields: ImmutableMultiDict[str, str],
+        date: datetime.date
+    ) -> None:
+    """
+    Save all state entries to database
+
+    Arguments:
+        states -- collection containing all State objects, belonging
+            to one user
+        checked_values -- dict containing all names of entered form fields
+        date -- date object
+    """
+    for state in states:
+        state_value = fields.get(state.name, default=-1)
+
+        save_state_entry(state.id, date, state_value)
+
+def save_habit_entry(
+        habit_id: int,
+        date: datetime.date,
+        value: bool
+    ) -> None:
+    """
+    Add one habit entry to database.
+
+    Arguments:
+        habit_id -- id of habit
+        date -- date object
+        value -- value of entry
+    """
+    habit_entry = HabitEntry(
+        habit_id = habit_id,
+        date = date,
+        value = value
+    )
+    
+    db.session.add(habit_entry)
+
+def save_state_entry(
+        state_id,
+        date,
+        value
+    ) -> None:
+    """
+    Add one state entry to database.
+
+    Arguments:
+        state_id -- id of state
+        date -- date object
+        value -- value of entry
+    """
+    state_entry = StateEntry(
+        state_id = state_id,
+        date = date,
+        value = value
+    )
+    
+    db.session.add(state_entry)
+
 @main.route('/send_form', methods = ['POST'])
 @login_required
 def index_post():
     if request.form:
         uid = current_user.id
-        today = datetime.date.today()#.strftime(r"%Y-%m-%d")
+        today = datetime.date.today()
 
-        # save_journal
-        journal = JournalEntry(
-            user_id = uid,
-            date = today,
-            note = request.form.get("journal_entry")
-        )
+        # handle journal
+        journal_entry = request.form.get("journal_entry")
+        save_journal_entry(uid, today, journal_entry)
 
-        db.session.add(journal)
-        db.session.commit()
-
-        # save_habits
-        user_habits = Habit.query.filter_by(user_id=uid).all()
-        for habit in user_habits:
-            if habit.name in request.form.keys():
-                habit_value = True
-            else:
-                habit_value = False
-
-            habit_entry = HabitEntry(
-                habit_id = habit.id,
-                date = today,
-                value = habit_value
-            )
-            
-            db.session.add(habit_entry)
+        # handle habits
+        user_habits = db.session.scalars(
+            db.select(Habit).filter_by(user_id=uid)
+        ).all()
+        save_habit_entries(user_habits, request.form, today)
         
+        # handle states
+        user_states = db.session.scalars(
+            db.select(State).filter_by(user_id=uid)
+        ).all()
+        save_state_entries(user_states, request.form, today)
+
         db.session.commit()
-
-        # save_states
-        user_states = State.query.filter_by(user_id=uid).all()
-        for state in user_states:
-            if state.name in request.form.keys():
-                state_value = request.form.get(state.name)
-            else:
-                state_value = None
-
-            state_entry = StateEntry(
-                state_id = state.id,
-                date = today,
-                value = state_value
-            )
-            
-            db.session.add(state_entry)
-        
-        db.session.commit()
-
-
 
     return redirect("index")
 
