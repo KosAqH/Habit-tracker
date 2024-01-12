@@ -344,74 +344,143 @@ def new_entry_post():
     
     return redirect(f"day/{raw_date}")
 
-@main.route('/edit/<date>', methods = ['GET'])
-@login_required
-def edit(date):
+def parse_data_parameter(
+        date: str
+    ) -> datetime.date:
+    """
+    Try to parse date and return date object. If action fail, then
+    raise 404 error.
+
+    Argument:
+        date -- date save as a string in format YYYYMMDD, where Y = Year,
+            M = Month and D = Day. For example 20230220
+    """
     try:
         parsed_date = datetime.datetime.strptime(date, r"%Y%m%d")
     except ValueError:
         abort(404)
+    return parsed_date.date()
 
-    if parsed_date.date() > datetime.date.today():
-        return redirect(url_for("main.future"))
-    
-    uid = current_user.id
+def add_missing_entries(
+        habits: list[Habit],
+        states: list[State],
+        date: datetime.date
+    ) -> None:
+    """
+    Create entries for habits and states with default value and with given
+    date attribute.
+    They are created only to be replaced by user input. They have to be created,
+    so edit form will be displayed correctly.
 
-    min_date = db.session.scalar(
-        func.min(
-            db.select(Habit.start_date).filter_by(user_id=uid)
-        )   
-    )
-    if min_date is None:
-        min_date = datetime.date.today().strftime(r"%Y%m%d")
-    else:
-        min_date = str(min_date).replace("-", "")
-        
-    if parsed_date.date() < datetime.datetime.strptime(min_date, r"%Y%m%d").date():
-        return redirect(url_for("main.past"))
-    
-    if is_entry_empty(uid, parsed_date.date()):
-        return redirect(url_for("main.new_entry", date=date))
-    
-    date = parsed_date
-    parsed_date = parsed_date.strftime(r'%Y-%m-%d')
-
-    habits = User.query.filter_by(id=uid).first().habits
-    states = User.query.filter_by(id=uid).first().states
-
+    Arguments:
+        habits -- collection containing all Habit objects, belonging
+            to one user
+        states -- collection containing all State objects, belonging
+            to one user
+        date -- date object
+    """
     for habit in habits:
-        if not habit.habit_entries and date.date() <= habit.start_date:
+        if not habit.habit_entries and date <= habit.start_date:
             entry = HabitEntry(
                 habit_id=habit.id,
                 date=date,
                 value=False
             )
             db.session.add(entry)
-    db.session.commit()
         
     for state in states:
-        if not state.state_entries and date.date() <= state.start_date:
+        if not state.state_entries and date <= state.start_date:
             entry = StateEntry(
                 state_id=state.id,
                 date=date,
-                value=False
+                value=-1
             )
             db.session.add(entry)
     db.session.commit()
 
+def get_oldest_user_entry_date(
+        uid: int
+    ) -> datetime.date:
+    """
+    Do query to db to find the oldest user entry. Then return it.
+    If user doesn't have any entries then return today date.
+
+    Argument
+        uid - user's id
+    """
+    min_date = db.session.scalar( 
+        func.min(
+            db.select(Habit.start_date).filter_by(user_id=uid)
+        )   
+    )
+
+    if min_date is None:
+        min_date = datetime.date.today().strftime(r"%Y%m%d")
+
+    return min_date
+
+def handle_requested_date_out_of_range(
+        entered_date :datetime.date, 
+        oldest_date: datetime.date
+    ) -> str | None:
+    """
+    Return url to future view, if entered date is later than current.
+    Return url to past view, if entered date is prior to first date
+        containing any entries.
+    Return None if given date is in range of user's entries.
+
+    Arguments:
+        entered_date -- requested date
+        oldest_date -- the oldest found date of any current user's entry
+    """
+    if entered_date > datetime.date.today():
+        return url_for("main.future")
+    elif entered_date < datetime.datetime.strptime(oldest_date, r"%Y%m%d").date():
+        return url_for("main.past")
+    else:
+        return None
+
+@main.route('/edit/<date>', methods = ['GET'])
+@login_required
+def edit(date):
+    """
+    Returning edit day form, that is filled with already
+    entered values.
+    """
+    uid = current_user.id
+    date = parse_data_parameter(date)
+
+    # handle request for date in future
+    # or in past, if it's before first user's entries
+    oldest_date = get_oldest_user_entry_date(uid)
+    page_to_redirect = handle_requested_date_out_of_range(date, oldest_date)
+    if page_to_redirect:
+        return redirect(page_to_redirect)
+    
+    # handle attempt to edit null entry
+    if is_entry_empty(uid, date):
+        return redirect(url_for("main.new_entry", date=date.strftime(r"%Y%m%d")))
+    
+    habits = current_user.habits
+    states = current_user.states
+
+    # add missing entries if habit or state was created 
+    # after some entries to this day was already entered
+    add_missing_entries(habits, states, date)
+
     habits_entries = db.session.scalars(
-        db.select(HabitEntry).filter_by(date=parsed_date)
+        db.select(HabitEntry).filter_by(date=date)
         .join(Habit).filter_by(user_id=uid)
     ).all()
 
     state_entries = db.session.scalars(
-        db.select(StateEntry).filter_by(date=parsed_date)
+        db.select(StateEntry).filter_by(date=date)
         .join(State).filter_by(user_id=uid)
     ).all()
 
     journal_entry = db.session.scalar(
         db.select(JournalEntry)
-        .filter_by(user_id=uid, date=parsed_date)
+        .filter_by(user_id=uid, date=date)
     )
     note = journal_entry.note if journal_entry else ""
 
