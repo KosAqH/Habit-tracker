@@ -214,7 +214,7 @@ class PlotManager:
 
     def make_plots(
             self, 
-            date: datetime.date, 
+            data: list[Habit | State], 
             data_type: Literal["Habit", "State"]
         ) -> None:
         """
@@ -222,11 +222,11 @@ class PlotManager:
         to responding objects.
 
         Arguments:
-            date -- date object passed by user
+            date -- collection with Habit or State objects
             data_type -- string indicating type of data user wants to plot
         """
         self.specify_data_preparation_method(data_type)
-        self.prepare_data(date, self.today_entry_exists)
+        self.prepare_data(data, self.today_entry_exists)
         for obj in data:
             data = self.get_data_for_plot(obj, data_type)
             plotter = Plotter(self.dates, data, data_type)
