@@ -293,7 +293,7 @@ class Plotter:
             data -- list containing all data values to plot
             data_type -- string indicating type of given data 
         """
-        if len(dates != data):
+        if len(dates) != len(data):
             raise ValueError(
                 "Length mismatch - dates and data list should have equal length"
             )
