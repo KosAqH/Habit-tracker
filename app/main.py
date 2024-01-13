@@ -203,7 +203,7 @@ def past():
 @login_required
 def day_date_not_given():
     """
-    View used to redirecting user to today day page, if he enters url
+    View redirect user to today day page, if he enters url
     without specified date parameter.
     """
     current_day = datetime.date.today().strftime(r"%Y%m%d")
@@ -537,6 +537,9 @@ def edit_post():
 @main.route('/settings', methods = ['GET'])
 @login_required
 def settings():
+    """
+    Render settings page
+    """
     uid = current_user.id
     return render_template(
         "settings.html",
@@ -547,6 +550,9 @@ def settings():
 @main.route('/add_habit', methods = ['POST'])
 @login_required
 def add_habit():
+    """
+    View handle adding new Habit to database
+    """
     uid = current_user.id
     formated_data = datetime.date.today()
 
@@ -559,11 +565,14 @@ def add_habit():
     db.session.add(habit)
     db.session.commit()
 
-    return redirect("settings")
+    return redirect(url_for("main.settings"))
 
 @main.route('/add_state', methods = ['POST'])
 @login_required
 def add_state():
+    """
+    View handle adding new State to database
+    """
     uid = current_user.id
     formated_data = datetime.date.today()
 
@@ -576,11 +585,15 @@ def add_state():
     db.session.add(state)
     db.session.commit()
 
-    return redirect("settings")
+    return redirect(url_for("main.settings"))
 
 @main.route('/delete_habit', methods = ['POST'])
 @login_required
 def delete_habit():
+    """
+    View handle removing Habit from database.
+    All associated HabitEntries will be removed automatically.
+    """
     uid = current_user.id
     habit_id = request.form.get("habit_id")
 
@@ -590,11 +603,15 @@ def delete_habit():
     )
     db.session.delete(habit)
     db.session.commit()
-    return redirect("settings")
+    return redirect(url_for("main.settings"))
 
 @main.route('/delete_state', methods = ['POST'])
 @login_required
 def delete_state():
+    """
+    View handle removing State from database.
+    All associated StateEntries will be removed automatically.
+    """
     uid = current_user.id
     state_id = request.form.get("state_id")
 
@@ -604,13 +621,17 @@ def delete_state():
     )
     db.session.delete(state)
     db.session.commit()
-    return redirect("settings")
+    return redirect(url_for("main.settings"))
 
 @main.route('/calendar/', methods = ['GET'])
 @login_required
 def calendar_date_not_given():
+    """
+    View redirect user to current month's page,
+    if he enters url without specified mdate parameter.
+    """
     current_month = datetime.date.today().strftime(r"%Y%m")
-    return redirect(f"/calendar/{current_month}")
+    return redirect(url_for("main.calendar", mdate=current_month))
 
 @main.route('/calendar/<mdate>', methods = ['GET'])
 @login_required
