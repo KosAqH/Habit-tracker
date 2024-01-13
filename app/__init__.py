@@ -23,6 +23,9 @@ app.register_blueprint(auth_blueprint)
 from .main import main as main_blueprint
 app.register_blueprint(main_blueprint)
 
+from .settings import settings as settings_blueprint
+app.register_blueprint(settings_blueprint)
+
 from .error_handler import page_not_found
 
 with app.app_context():
