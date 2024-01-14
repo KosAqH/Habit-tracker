@@ -610,7 +610,7 @@ def calendar_date_not_given() -> Response:
     if he enters url without specified mdate parameter.
     """
     current_month = datetime.date.today().strftime(r"%Y%m")
-    return redirect(url_for("main.calendar", mdate=current_month))
+    return redirect(url_for("main.calendar_view", mdate=current_month))
 
 def get_next_and_previous_months(
         month: str, 
