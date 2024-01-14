@@ -211,49 +211,55 @@ def day_date_not_given():
 
 @main.route('/day/<date>', methods = ['GET'])
 @login_required
-def day_date(date):
+def day_date(date) -> str | Response:
+    """
+    View rendering page with tracked data about particular day
+
+    Parameters:
+        date -- date entered in format YYYYMMDD, where Y = Year,
+            M = Month and D = Day. For example 20230220
+    """
     uid = current_user.id
 
     try:
-        parsed_date = datetime.datetime.strptime(date, r"%Y%m%d")
+        parsed_date = datetime.datetime.strptime(date, r"%Y%m%d").date()
     except ValueError:
         abort(404)
     
-    if parsed_date.date() > datetime.date.today():
+    # redirect if date is future
+    if parsed_date > datetime.date.today():
         return redirect(url_for("main.future"))
 
-    min_date = db.session.scalar(
-        func.min(
-            db.select(Habit.start_date).filter_by(user_id=uid)
-        )   
-    )
+    min_date = get_min_date(uid)
+    # redirect if date is prior first user's entry
+    if parsed_date < min_date:
+        return redirect(url_for("main.past"))
     
+    # determine if given date is first or the last day of user's entry 
     is_last_day = False
     is_first_day = False
-    if parsed_date.date() == datetime.date.today():
+
+    if parsed_date == datetime.date.today():
         is_last_day = True
-    if parsed_date.date() <= min_date:
+    if parsed_date <= min_date:
         is_first_day = True
 
-    min_date = str(min_date).replace("-", "")
-    if parsed_date.date() < datetime.datetime.strptime(min_date, r"%Y%m%d").date():
-        return redirect(url_for("main.past"))
+    last_day = (parsed_date - datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
+    next_day = (parsed_date + datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
 
-    last_date = (parsed_date - datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
-    next_date = (parsed_date + datetime.timedelta(days=1)).strftime(r'%Y-%m-%d')
-
-    parsed_date = parsed_date.strftime(r'%Y-%m-%d')
-
+    # get all habit entries from this day
     habits_entries = db.session.scalars(
         db.select(HabitEntry).filter_by(date=parsed_date)
         .join(Habit).filter_by(user_id=uid)
     ).all()
 
+    # get all state entries from this day
     state_entries = db.session.scalars(
         db.select(StateEntry).filter_by(date=parsed_date)
         .join(State).filter_by(user_id=uid)
     ).all()
 
+    # get journal entry from this day
     journal_entry = db.session.scalar(
         db.select(JournalEntry)
         .filter_by(user_id=uid, date=parsed_date)
@@ -264,11 +270,11 @@ def day_date(date):
     return render_template(
         "day.html",
         current_date = parsed_date,
-        current_date_link = parsed_date.replace("-", ""),
-        last_date = last_date,
-        last_date_link = last_date.replace("-", ""),
-        next_date = next_date,
-        next_date_link = next_date.replace("-", ""),
+        current_date_link = parsed_date.strftime(r"%Y%m%d"),
+        last_date = last_day,
+        last_date_link = last_day.replace("-", ""),
+        next_date = next_day,
+        next_date_link = next_day.replace("-", ""),
         note = note,
         habits = habits_entries,
         states = state_entries,
