@@ -25,7 +25,7 @@
           {% for value in week %}
             {% if value %}
               <td>
-                {% if value.active %}
+                {% if value.is_active %}
                   <a href="{{ value.link }}">{{value.day}}</a>
                 {% else %}
                   {{value.day}}

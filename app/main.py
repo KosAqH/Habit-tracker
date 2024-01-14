@@ -1,7 +1,7 @@
 import datetime
 import calendar
 
-from flask import Blueprint
+from flask import Blueprint, Response
 from flask import render_template, redirect, abort, url_for
 from flask import request
 
@@ -446,6 +446,10 @@ def edit(date):
     """
     Returning edit day form, that is filled with already
     entered values.
+
+    Parameters:
+        date -- date entered in format YYYYMMDD, where Y = Year,
+                M = Month and D = Day. For example 20230220
     """
     uid = current_user.id
     date = parse_data_parameter(date)
@@ -491,52 +495,116 @@ def edit(date):
         journal_text = note
     )
 
-@main.route('/update_day', methods = ['POST'])
-@login_required
-def edit_post():
-    uid = current_user.id
-    date = request.referrer.split("/")[-1]
-    formated_data = datetime.datetime.strptime(date, r"%Y%m%d").strftime(r"%Y-%m-%d")
+def update_note(
+        uid: int,
+        form: ImmutableMultiDict,
+        date: datetime.date
+    ) -> None:
+    """
+    Update journal note for given day, using data entered to form.
+    """
+    journal_entry = db.session.scalar(
+        db.select(JournalEntry)
+        .filter_by(user_id=uid, date=date)
+    )
+    journal_entry.note = form.get("journal_entry")
 
-    user_habits = Habit.query.filter_by(user_id=uid).filter(Habit.start_date <= formated_data).all()
+def get_habit_value(
+        habit: Habit,
+        form: ImmutableMultiDict
+    ) -> bool:
+    """
+    Get habit value from form.
+    """
+    if habit.name in form.keys():
+        habit_value = True
+    else:
+        habit_value = False
 
-    for habit in user_habits:
-        if habit.name in request.form.keys():
-            habit_value = True
-        else:
-            habit_value = False
+    return habit_value
 
-        habit_entry = db.session.scalar(
-            db.select(HabitEntry)
-            .filter_by(habit_id=habit.id, date=formated_data)
-        )
-        habit_entry.value = habit_value
+def get_state_value(
+        state: State,
+        form: ImmutableMultiDict
+    ) -> int:
+    """
+    Get state value from form.
+    """
+    if state.name in form.keys():
+        state_value = form.get(state.name)
+    else:
+        state_value = None
 
-    user_states = State.query.filter_by(user_id=uid).filter(State.start_date <= formated_data).all()
-    for state in user_states:
-        if state.name in request.form.keys():
-            state_value = request.form.get(state.name)
-        else:
-            state_value = None
+    return state_value
+
+def update_states(
+        states: list[State], 
+        date: datetime.date, 
+        form: ImmutableMultiDict
+    ) -> None:
+    """
+    Update values for given states, using data entered to form.
+    """
+
+    for state in states:
+        state_value = get_state_value(state, form)
 
         state_entry = db.session.scalar(
             db.select(StateEntry)
-            .filter_by(state_id=state.id, date=formated_data)
+            .filter_by(state_id=state.id, date=date)
         )
         state_entry.value = state_value
 
-    journal_entry = db.session.scalar(
-        db.select(JournalEntry)
-        .filter_by(user_id=uid, date=formated_data)
-    )
-    journal_entry.note = request.form.get("journal_entry")
+def update_habits(
+        habits: list[Habit], 
+        date: datetime.date, 
+        form: ImmutableMultiDict
+    ) -> None:
+    """
+    Update values for given habits, using data entered to form.
+    """
+
+    for habit in habits:
+        habit_value = get_habit_value(habit, form)
+
+        habit_entry = db.session.scalar(
+            db.select(HabitEntry)
+            .filter_by(habit_id=habit.id, date=date)
+        )
+        habit_entry.value = habit_value
+
+@main.route('/update_day', methods = ['POST'])
+@login_required
+def edit_post() -> Response:
+    """
+    Handle data entered by user on edit page
+    """
+    uid = current_user.id
+
+    try:
+        date = request.referrer.split("/")[-1]
+        formated_date = datetime.datetime.strptime(date, r"%Y%m%d").strftime(r"%Y-%m-%d")
+    except:
+        abort(404)
+
+    user_habits = db.session.scalars(
+        db.select(Habit).filter_by(user_id = uid).filter(Habit.start_date <= formated_date)
+    ).all()
+    update_habits(user_habits, formated_date, request.form)
+
+    user_states =  db.session.scalars(
+        db.select(State).filter_by(user_id = uid).filter(State.start_date <= formated_date)
+    ).all()
+    update_states(user_states, formated_date, request.form)
+    
+    update_note(uid, request.form, formated_date)
     
     db.session.commit()
     return redirect(f"day/{date}")
 
 @main.route('/calendar/', methods = ['GET'])
 @login_required
-def calendar_date_not_given():
+def calendar_date_not_given() -> Response:
     """
     View redirect user to current month's page,
     if he enters url without specified mdate parameter.
@@ -544,25 +612,25 @@ def calendar_date_not_given():
     current_month = datetime.date.today().strftime(r"%Y%m")
     return redirect(url_for("main.calendar", mdate=current_month))
 
-@main.route('/calendar/<mdate>', methods = ['GET'])
-@login_required
-def calendar_view(mdate):
-    year = mdate[:4]
-    month = mdate[4:]
-    uid = current_user.id
+def get_next_and_previous_months(
+        month: str, 
+        year: str
+    ) -> (str, str):
+    """
+    Returns year and number of month for next and previous months
+    for given current one.
 
-    try:
-        cal = calendar.monthcalendar(int(year), int(month))
-    except:
-        abort(404)
-
-    if int(month) == 1:
+    Arguments:
+        month -- current month as a string eg. '01' or '12'
+        year --  current year as a string
+    """
+    if month == "01":
         last_m = "12"
         next_m = "02"
         last_y = f"{int(year)-1}".zfill(4)
         next_y = year
 
-    elif int(month) == 12:
+    elif month == "12":
         last_m = "11"
         next_m = "01"
         last_y = year
@@ -577,33 +645,84 @@ def calendar_view(mdate):
     last_month = f"{last_y}{last_m}"
     next_month = f"{next_y}{next_m}"
 
-    today = datetime.date.today().strftime(r"%Y%m%d")
+    return last_month, next_month
 
+def get_min_date(
+        uid: int
+    ) -> datetime.date:
+    """
+    Returns date of first ever user's entry
+    """
     min_date = db.session.scalar(
         func.min(
-            db.select(Habit.start_date).filter_by(user_id=uid)
+            db.select(JournalEntry.date).filter_by(user_id=uid)
         )   
     )
-    first_date = str(min_date).replace("-", "")
+    return min_date
 
-    month_name = calendar.month_name[(int(month))]
+def generate_calendar_table(
+        cal: calendar.Calendar,
+        uid: int,
+        mdate: str
+    ) -> list[list[dict]]:
+    """
+    Generate  and return table with calendar values, that will be used to
+    render proper calendar for given month and given user.
+
+    Arguments:
+        cal -- calendar's object for given month
+        uid -- current user's id
+        mdate -- date entered in format YYYYMM, where Y = Year,
+            M = Month. For example 202302 
+    """
+    
+    today = datetime.date.today().strftime(r"%Y%m%d")
+
+    min_date = get_min_date(uid)
+    first_date = min_date.strftime(r"%Y%m%d")
 
     generated_calendar = []
     for week in cal:
         generated_week = []
         for day in week:
-            if day == 0:
+            if day == 0: 
+                # calendar's representation of month fills lacking days with zeros
                 d = {}
             else:
                 date = f"{mdate}{str(day).zfill(2)}"
                 d = {
-                    "link": url_for("main.day_date", 
-                                    date=date), 
+                    "link": url_for("main.day_date",date=date), 
                     "day": day, 
-                    "active": True if date <= today and date >= first_date else False
+                    "is_active": True if first_date <= date <= today else False
                 }
             generated_week.append(d)
         generated_calendar.append(generated_week)
+    return generated_calendar
+
+
+@main.route('/calendar/<mdate>', methods = ['GET'])
+@login_required
+def calendar_view(mdate) -> str:
+    """
+    View renders calendar page for given month and year.
+    
+    Parameters:
+        mdate -- date entered in format YYYYMM, where Y = Year,
+            M = Month. For example 202302 
+    """
+    year = mdate[:4]
+    month = mdate[4:]
+    uid = current_user.id
+
+    try:
+        cal = calendar.monthcalendar(int(year), int(month))
+    except:
+        abort(404)
+
+    last_month, next_month = get_next_and_previous_months(month, year)
+
+    generated_calendar = generate_calendar_table(cal, uid, mdate)
+    month_name = calendar.month_name[(int(month))]
 
     return render_template(
         "calendar.html",

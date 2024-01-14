@@ -1,6 +1,6 @@
 import datetime
 
-from flask import Blueprint
+from flask import Blueprint, Response
 from flask import render_template, redirect, url_for
 from flask import request
 
@@ -14,7 +14,7 @@ settings = Blueprint('settings', __name__)
 
 @settings.route('/settings', methods = ['GET'])
 @login_required
-def settings_index():
+def settings_index() -> str:
     """
     Render settings page
     """
@@ -26,7 +26,7 @@ def settings_index():
 
 @settings.route('/add_habit', methods = ['POST'])
 @login_required
-def add_habit():
+def add_habit() -> Response:
     """
     View handle adding new Habit to database
     """
@@ -46,7 +46,7 @@ def add_habit():
 
 @settings.route('/add_state', methods = ['POST'])
 @login_required
-def add_state():
+def add_state() -> Response:
     """
     View handle adding new State to database
     """
@@ -66,7 +66,7 @@ def add_state():
 
 @settings.route('/delete_habit', methods = ['POST'])
 @login_required
-def delete_habit():
+def delete_habit() -> Response:
     """
     View handle removing Habit from database.
     All associated HabitEntries will be removed automatically.
@@ -84,7 +84,7 @@ def delete_habit():
 
 @settings.route('/delete_state', methods = ['POST'])
 @login_required
-def delete_state():
+def delete_state() -> Response:
     """
     View handle removing State from database.
     All associated StateEntries will be removed automatically.
