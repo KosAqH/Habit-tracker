@@ -11,7 +11,7 @@ from flask_login import current_user
 from . import db, app
 from .models import User, JournalEntry, HabitEntry, Habit, State, StateEntry
 from .plot_handler import PlotManager
-from .utils import CalendarUtils, GeneralUtils, DataOperationUtils, DatetimeUtils
+from .utils import CalendarUtils, DataOperationUtils, DatetimeUtils
 
 
 main = Blueprint('main', __name__)
@@ -123,7 +123,7 @@ def day_date(date) -> str | Response:
     if parsed_date > datetime.date.today():
         return redirect(url_for("main.future"))
 
-    min_date = GeneralUtils.get_min_date(uid)
+    min_date = current_user.get_min_date(uid)
     # redirect if date is prior first user's entry
     if parsed_date < min_date:
         return redirect(url_for("main.past"))
@@ -259,7 +259,7 @@ def edit(date):
 
     # handle request for date in future
     # or in past, if it's before first user's entries
-    oldest_date = GeneralUtils.get_min_date(uid)
+    oldest_date = current_user.get_min_date()
     page_to_redirect = DatetimeUtils.handle_requested_date_out_of_range(date, oldest_date)
     if page_to_redirect:
         return redirect(page_to_redirect)

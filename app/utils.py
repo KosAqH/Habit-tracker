@@ -1,6 +1,7 @@
 import datetime
 
 from flask import url_for, abort
+from flask_login import current_user
 
 from werkzeug.datastructures import ImmutableMultiDict
 
@@ -8,36 +9,6 @@ from sqlalchemy.sql import func
 
 from . import db
 from .models import JournalEntry, HabitEntry, Habit, State, StateEntry
-
-
-class GeneralUtils:
-    """
-    General purpose utils.
-    """
-    @classmethod
-    def get_min_date(
-            cls,
-            uid: int
-        ) -> datetime.date:
-        """
-        Returns date of first ever user's entry
-
-        If user doesn't have any entries then return today date.
-
-        Argument
-            uid - user's id
-        """
-        min_date = db.session.scalar(
-            func.min(
-                db.select(JournalEntry.date).filter_by(user_id=uid)
-            )
-        )
-
-        if min_date is None:
-            min_date = datetime.date.today().strftime(r"%Y%m%d")
-
-        return min_date
-
 
 class CalendarUtils:
     """
@@ -97,7 +68,7 @@ class CalendarUtils:
         """
         today = datetime.date.today().strftime(r"%Y%m%d")
 
-        min_date = GeneralUtils.get_min_date(uid)
+        min_date = current_user.get_min_date()
         first_date = min_date.strftime(r"%Y%m%d")
 
         generated_calendar = []

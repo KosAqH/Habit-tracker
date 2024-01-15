@@ -1,5 +1,9 @@
-from app import db, login_manager
+import datetime
+
 from flask_login import UserMixin
+from sqlalchemy.sql import func
+
+from app import db, login_manager
 
 
 @login_manager.user_loader
@@ -21,6 +25,24 @@ class User(UserMixin, db.Model):
     habits = db.relationship('Habit', backref='user', cascade='all, delete, delete-orphan')
     states = db.relationship('State', backref='user', cascade='all, delete, delete-orphan')
 
+    def get_min_date(
+            self
+        ) -> datetime.date:
+        """
+        Returns date of first ever user's entry
+
+        If user doesn't have any entries then return today date.
+        """
+        min_date = db.session.scalar(
+            func.min(
+                db.select(JournalEntry.date).filter_by(user_id=self.id)
+            )
+        )
+
+        if min_date is None:
+            min_date = datetime.date.today().strftime(r"%Y%m%d")
+
+        return min_date
 
 class Habit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
