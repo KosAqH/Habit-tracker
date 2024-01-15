@@ -50,3 +50,8 @@ Things to do:
 
 
 ### Showcase
+
+
+
+https://github.com/KosAqH/Habit-tracker/assets/82679650/cc23d32f-16b6-4d2b-b2c1-119bfbc36599
+
