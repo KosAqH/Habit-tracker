@@ -123,7 +123,7 @@ def day_date(date) -> str | Response:
     if parsed_date > datetime.date.today():
         return redirect(url_for("main.future"))
 
-    min_date = current_user.get_min_date(uid)
+    min_date = current_user.get_min_date()
     # redirect if date is prior first user's entry
     if parsed_date < min_date:
         return redirect(url_for("main.past"))
