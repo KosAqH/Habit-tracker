@@ -40,7 +40,7 @@ class User(UserMixin, db.Model):
         )
 
         if min_date is None:
-            min_date = datetime.date.today().strftime(r"%Y%m%d")
+            min_date = datetime.date.today()
 
         return min_date
 
