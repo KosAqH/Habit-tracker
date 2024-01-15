@@ -375,7 +375,7 @@ class DatetimeUtils:
         """
         if entered_date > datetime.date.today():
             return url_for("main.future")
-        elif entered_date < datetime.datetime.strptime(oldest_date, r"%Y%m%d").date():
+        elif entered_date < oldest_date:
             return url_for("main.past")
         else:
             return None
