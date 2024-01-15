@@ -11,6 +11,9 @@ from .models import JournalEntry, HabitEntry, Habit, State, StateEntry
 
 
 class GeneralUtils:
+    """
+    General purpose utils.
+    """
     @classmethod
     def get_min_date(
             cls,
@@ -27,7 +30,7 @@ class GeneralUtils:
         min_date = db.session.scalar(
             func.min(
                 db.select(JournalEntry.date).filter_by(user_id=uid)
-            )   
+            )
         )
 
         if min_date is None:
@@ -37,10 +40,13 @@ class GeneralUtils:
 
 
 class CalendarUtils:
+    """
+    Utils related to calendar generation
+    """
     @classmethod
     def get_next_and_previous_months(
             cls,
-            month: str, 
+            month: str,
             year: str
         ) -> (str, str):
         """
@@ -56,13 +62,11 @@ class CalendarUtils:
             next_m = "02"
             last_y = f"{int(year)-1}".zfill(4)
             next_y = year
-
         elif month == "12":
             last_m = "11"
             next_m = "01"
             last_y = year
             next_y = f"{int(year)+1}".zfill(4)
-            
         else:
             last_m = f"{int(month)-1}".zfill(2)
             next_m = f"{int(month)+1}".zfill(2)
@@ -89,9 +93,8 @@ class CalendarUtils:
             cal -- calendar's object for given month
             uid -- current user's id
             mdate -- date entered in format YYYYMM, where Y = Year,
-                M = Month. For example 202302 
+                M = Month. For example 202302
         """
-        
         today = datetime.date.today().strftime(r"%Y%m%d")
 
         min_date = GeneralUtils.get_min_date(uid)
@@ -101,14 +104,14 @@ class CalendarUtils:
         for week in cal:
             generated_week = []
             for day in week:
-                if day == 0: 
+                if day == 0:
                     # calendar's representation of month fills lacking days with zeros
                     d = {}
                 else:
                     date = f"{mdate}{str(day).zfill(2)}"
                     d = {
-                        "link": url_for("main.day_date",date=date), 
-                        "day": day, 
+                        "link": url_for("main.day_date", date=date),
+                        "day": day,
                         "is_active": True if first_date <= date <= today else False
                     }
                 generated_week.append(d)
@@ -117,6 +120,10 @@ class CalendarUtils:
 
 
 class DataOperationUtils:
+    """
+    Utils related to accesing data from forms and putting
+    or updating them in database.
+    """
     @classmethod
     def update_note(
             cls,
@@ -168,14 +175,13 @@ class DataOperationUtils:
     @classmethod
     def update_states(
             cls,
-            states: list[State], 
-            date: datetime.date, 
+            states: list[State],
+            date: datetime.date,
             form: ImmutableMultiDict
         ) -> None:
         """
         Update values for given states, using data entered to form.
         """
-
         for state in states:
             state_value = cls.get_state_value(state, form)
 
@@ -188,8 +194,8 @@ class DataOperationUtils:
     @classmethod
     def update_habits(
             cls,
-            habits: list[Habit], 
-            date: datetime.date, 
+            habits: list[Habit],
+            date: datetime.date,
             form: ImmutableMultiDict
         ) -> None:
         """
@@ -221,11 +227,10 @@ class DataOperationUtils:
             note -- string containing journal entry
         """
         journal = JournalEntry(
-                user_id = uid,
-                date = date,
-                note = note
+                user_id=uid,
+                date=date,
+                note=note
             )
-        
         db.session.add(journal)
 
     @classmethod
@@ -289,9 +294,9 @@ class DataOperationUtils:
             value -- value of entry
         """
         habit_entry = HabitEntry(
-            habit_id = habit_id,
-            date = date,
-            value = value
+            habit_id=habit_id,
+            date=date,
+            value=value
         )
         
         db.session.add(habit_entry)
@@ -312,11 +317,10 @@ class DataOperationUtils:
             value -- value of entry
         """
         state_entry = StateEntry(
-            state_id = state_id,
-            date = date,
-            value = value
+            state_id=state_id,
+            date=date,
+            value=value
         )
-        
         db.session.add(state_entry)
 
     @classmethod
@@ -347,7 +351,7 @@ class DataOperationUtils:
                     value=False
                 )
                 db.session.add(entry)
-            
+
         for state in states:
             if not state.state_entries and date <= state.start_date:
                 entry = StateEntry(
@@ -358,7 +362,11 @@ class DataOperationUtils:
                 db.session.add(entry)
         db.session.commit()
 
+
 class DatetimeUtils:
+    """
+    Utils related to processing dates
+    """
     @classmethod
     def parse_data_parameter(
             cls,
@@ -381,7 +389,7 @@ class DatetimeUtils:
     @classmethod
     def handle_requested_date_out_of_range(
             cls,
-            entered_date :datetime.date, 
+            entered_date :datetime.date,
             oldest_date: datetime.date
         ) -> str | None:
         """
